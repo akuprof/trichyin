@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Calendar, Tags } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
@@ -43,12 +43,13 @@ const NewsArticle = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [post, setPost] = useState<NewsPost | null>(null);
+  const [relatedPosts, setRelatedPosts] = useState<NewsPost[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!slug) return;
 
-    const loadPost = async () => {
+    const loadPostAndRelated = async () => {
       const { data, error } = await supabase
         .from("news_posts")
         .select("*")
@@ -59,9 +60,23 @@ const NewsArticle = () => {
       if (error || !data) {
         toast({ title: "செய்தி கிடைக்கவில்லை", description: error?.message || "Invalid article slug", variant: "destructive" });
         navigate("/", { replace: true });
-      } else {
-        setPost(data as NewsPost);
+        setLoading(false);
+        return;
       }
+
+      const currentPost = data as NewsPost;
+      setPost(currentPost);
+
+      const { data: relatedData } = await supabase
+        .from("news_posts")
+        .select("*")
+        .eq("is_published", true)
+        .eq("category", currentPost.category)
+        .neq("id", currentPost.id)
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .limit(3);
+
+      setRelatedPosts((relatedData as NewsPost[]) || []);
       setLoading(false);
     };
 
@@ -74,7 +89,7 @@ const NewsArticle = () => {
       });
     };
 
-    void Promise.all([loadPost(), trackView()]);
+    void Promise.all([loadPostAndRelated(), trackView()]);
   }, [slug, navigate, toast, user?.id]);
 
   useEffect(() => {
@@ -144,6 +159,29 @@ const NewsArticle = () => {
             ))}
           </section>
         </article>
+
+        {relatedPosts.length > 0 && (
+          <section className="mt-10">
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-heading text-xl uppercase">Related Articles</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {relatedPosts.map((item) => (
+                  <Link
+                    key={item.id}
+                    to={`/news/${item.slug}`}
+                    className="block border border-border rounded-md p-4 hover:bg-muted/40 transition-colors"
+                  >
+                    <p className="text-xs text-primary font-heading uppercase tracking-wider">{item.category}</p>
+                    <h3 className="font-heading text-base uppercase mt-1">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.excerpt || "சுருக்கம் இல்லை"}</p>
+                  </Link>
+                ))}
+              </CardContent>
+            </Card>
+          </section>
+        )}
       </main>
       <Footer />
     </div>
