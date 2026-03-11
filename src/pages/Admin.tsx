@@ -13,7 +13,12 @@ import type { Tables } from "@/integrations/supabase/types";
 import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
 import AdminMediaFields from "@/components/admin/AdminMediaFields";
 
-type NewsPost = Tables<"news_posts"> & { video_url?: string | null };
+type NewsPost = Tables<"news_posts"> & {
+  video_url?: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string[] | null;
+};
 
 interface NewsFormState {
   title: string;
@@ -23,6 +28,9 @@ interface NewsFormState {
   content: string;
   cover_image_url: string;
   video_url: string;
+  meta_title: string;
+  meta_description: string;
+  meta_keywords: string;
   is_published: boolean;
 }
 
@@ -34,6 +42,9 @@ const emptyForm: NewsFormState = {
   content: "",
   cover_image_url: "",
   video_url: "",
+  meta_title: "",
+  meta_description: "",
+  meta_keywords: "",
   is_published: false,
 };
 
@@ -161,6 +172,9 @@ const Admin = () => {
       content: result.content || prev.content,
       cover_image_url: result.cover_image_url || prev.cover_image_url,
       video_url: result.video_url || prev.video_url,
+      meta_title: result.meta_title || prev.meta_title,
+      meta_description: result.meta_description || prev.meta_description,
+      meta_keywords: result.meta_keywords || prev.meta_keywords,
     }));
 
     toast({ title: "AI draft தயாராக உள்ளது" });
@@ -182,6 +196,11 @@ const Admin = () => {
       return;
     }
 
+    const keywordArray = form.meta_keywords
+      .split(",")
+      .map((keyword) => keyword.trim())
+      .filter(Boolean);
+
     setSaving(true);
 
     const payload: Record<string, unknown> = {
@@ -192,6 +211,9 @@ const Admin = () => {
       content: form.content.trim(),
       cover_image_url: form.cover_image_url.trim() || null,
       video_url: form.video_url.trim() || null,
+      meta_title: form.meta_title.trim() || null,
+      meta_description: form.meta_description.trim() || null,
+      meta_keywords: keywordArray,
       is_published: form.is_published,
       published_at: form.is_published ? new Date().toISOString() : null,
     };
@@ -221,6 +243,9 @@ const Admin = () => {
       content: post.content,
       cover_image_url: post.cover_image_url || "",
       video_url: post.video_url || "",
+      meta_title: post.meta_title || "",
+      meta_description: post.meta_description || "",
+      meta_keywords: (post.meta_keywords || []).join(", "),
       is_published: post.is_published,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -381,6 +406,37 @@ const Admin = () => {
                 <Textarea id="content" rows={8} value={form.content} onChange={(e) => setForm((p) => ({ ...p, content: e.target.value }))} required />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="meta-title">Meta Title</Label>
+                <Input
+                  id="meta-title"
+                  value={form.meta_title}
+                  onChange={(e) => setForm((p) => ({ ...p, meta_title: e.target.value }))}
+                  placeholder="SEO title (recommended < 60 chars)"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="meta-description">Meta Description</Label>
+                <Textarea
+                  id="meta-description"
+                  rows={3}
+                  value={form.meta_description}
+                  onChange={(e) => setForm((p) => ({ ...p, meta_description: e.target.value }))}
+                  placeholder="SEO description (recommended < 160 chars)"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="meta-keywords">Meta Keywords</Label>
+                <Input
+                  id="meta-keywords"
+                  value={form.meta_keywords}
+                  onChange={(e) => setForm((p) => ({ ...p, meta_keywords: e.target.value }))}
+                  placeholder="trichy, local news, civic issues"
+                />
+              </div>
+
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -420,6 +476,7 @@ const Admin = () => {
                     <h3 className="font-heading text-lg uppercase">{post.title}</h3>
                     <p className="text-xs text-muted-foreground mt-1">{post.category} • {post.slug}</p>
                     <p className="text-xs text-muted-foreground mt-1">{post.video_url ? "Video" : "Image"} media attached</p>
+                    <p className="text-xs text-muted-foreground mt-1">SEO: {(post.meta_title || "N/A").slice(0, 60)}</p>
                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{post.excerpt || "சுருக்கம் இல்லை"}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
