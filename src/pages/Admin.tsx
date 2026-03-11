@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { BarChart3, LogOut, Plus, Trash2, Pencil } from "lucide-react";
+import { BarChart3, LogOut, Plus, Trash2, Pencil, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
