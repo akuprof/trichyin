@@ -2,6 +2,8 @@ import { useState } from "react";
 import { MapPin, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 const navLinks = [
   { label: "சமீபத்திய செய்திகள்", href: "#latest" },
@@ -14,6 +16,14 @@ const navLinks = [
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    await signOut();
+    toast({ title: "வெற்றிகரமாக வெளியேறினீர்கள்" });
+    setMobileOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-secondary text-secondary-foreground">
@@ -28,8 +38,8 @@ const Navbar = () => {
         </div>
       </div>
 
-      <nav className="container flex items-center justify-between py-3">
-        <Link to="/" className="flex items-center gap-2">
+      <nav className="container flex items-center justify-between py-3 gap-3">
+        <Link to="/" className="flex items-center gap-2 shrink-0">
           <img src={logo} alt="திருச்சி இன்சைட்" className="h-10 w-auto" />
           <div>
             <h1 className="font-heading text-xl font-bold leading-none tracking-wide uppercase">
@@ -47,9 +57,20 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-2 text-muted-foreground text-xs">
-          <MapPin className="h-3.5 w-3.5" />
-          <span>திருச்சிராப்பள்ளி</span>
+        <div className="hidden md:flex items-center gap-3 text-muted-foreground text-xs">
+          <div className="flex items-center gap-2">
+            <MapPin className="h-3.5 w-3.5" />
+            <span>திருச்சிராப்பள்ளி</span>
+          </div>
+          {user ? (
+            <button onClick={handleLogout} className="text-primary hover:text-primary/80 transition-colors font-medium">
+              வெளியேறு
+            </button>
+          ) : (
+            <Link to="/auth" className="text-primary hover:text-primary/80 transition-colors font-medium">
+              உள்நுழைவு
+            </Link>
+          )}
         </div>
 
         <button
@@ -78,6 +99,22 @@ const Navbar = () => {
               <MapPin className="h-3.5 w-3.5" />
               <span>திருச்சிராப்பள்ளி</span>
             </div>
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="font-heading uppercase tracking-wider text-sm py-2 border-t border-muted-foreground/10 text-primary text-left"
+              >
+                வெளியேறு
+              </button>
+            ) : (
+              <Link
+                to="/auth"
+                onClick={() => setMobileOpen(false)}
+                className="font-heading uppercase tracking-wider text-sm py-2 border-t border-muted-foreground/10 text-primary"
+              >
+                உள்நுழைவு
+              </Link>
+            )}
           </div>
         </div>
       )}
