@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,9 +20,25 @@ const sanitizeFileName = (name: string) =>
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9.-]/g, "");
 
+const uploadToNewsMedia = async (userId: string, file: File) => {
+  const safeName = sanitizeFileName(file.name) || `media-${Date.now()}`;
+  const filePath = `${userId}/${Date.now()}-${safeName}`;
+
+  const { error: uploadError } = await supabase.storage.from("news-media").upload(filePath, file, {
+    cacheControl: "3600",
+    upsert: false,
+  });
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage.from("news-media").getPublicUrl(filePath);
+  return data.publicUrl;
+};
+
 const AdminMediaFields = ({ userId, imageUrl, videoUrl, onImageUrlChange, onVideoUrlChange }: AdminMediaFieldsProps) => {
   const { toast } = useToast();
-  const [uploading, setUploading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -33,27 +49,47 @@ const AdminMediaFields = ({ userId, imageUrl, videoUrl, onImageUrlChange, onVide
       return;
     }
 
-    setUploading(true);
+    try {
+      setUploadingImage(true);
+      const publicUrl = await uploadToNewsMedia(userId, file);
+      onImageUrlChange(publicUrl);
+      toast({ title: "படம் upload ஆனது" });
+    } catch (error) {
+      toast({
+        title: "Image upload தோல்வி",
+        description: error instanceof Error ? error.message : "Upload failed",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+      event.target.value = "";
+    }
+  };
 
-    const safeName = sanitizeFileName(file.name) || `media-${Date.now()}.jpg`;
-    const filePath = `${userId}/${Date.now()}-${safeName}`;
+  const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    const { error: uploadError } = await supabase.storage.from("news-media").upload(filePath, file, {
-      cacheControl: "3600",
-      upsert: false,
-    });
-
-    if (uploadError) {
-      toast({ title: "Image upload தோல்வி", description: uploadError.message, variant: "destructive" });
-      setUploading(false);
+    if (!file.type.startsWith("video/")) {
+      toast({ title: "வீடியோ file மட்டும் upload செய்யவும்", variant: "destructive" });
       return;
     }
 
-    const { data: publicData } = supabase.storage.from("news-media").getPublicUrl(filePath);
-    onImageUrlChange(publicData.publicUrl);
-    toast({ title: "படம் upload ஆனது" });
-    setUploading(false);
-    event.target.value = "";
+    try {
+      setUploadingVideo(true);
+      const publicUrl = await uploadToNewsMedia(userId, file);
+      onVideoUrlChange(publicUrl);
+      toast({ title: "வீடியோ upload ஆனது" });
+    } catch (error) {
+      toast({
+        title: "Video upload தோல்வி",
+        description: error instanceof Error ? error.message : "Upload failed",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingVideo(false);
+      event.target.value = "";
+    }
   };
 
   return (
@@ -66,10 +102,10 @@ const AdminMediaFields = ({ userId, imageUrl, videoUrl, onImageUrlChange, onVide
       <div className="space-y-2">
         <Label htmlFor="image-upload">Image Upload</Label>
         <div className="flex flex-wrap items-center gap-2">
-          <Input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} className="max-w-sm" />
-          <Button type="button" variant="secondary" disabled={uploading}>
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />} 
-            {uploading ? "Uploading..." : "Upload"}
+          <Input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} className="max-w-sm" />
+          <Button type="button" variant="secondary" disabled={uploadingImage}>
+            {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            {uploadingImage ? "Uploading..." : "Upload Image"}
           </Button>
         </div>
       </div>
@@ -84,7 +120,18 @@ const AdminMediaFields = ({ userId, imageUrl, videoUrl, onImageUrlChange, onVide
         />
       </div>
 
-      <p className="text-xs text-muted-foreground">ஒவ்வொரு செய்திக்கும் image அல்லது video அவசியம்.</p>
+      <div className="space-y-2">
+        <Label htmlFor="video-upload">Video Upload</Label>
+        <div className="flex flex-wrap items-center gap-2">
+          <Input id="video-upload" type="file" accept="video/*" onChange={handleVideoUpload} disabled={uploadingVideo} className="max-w-sm" />
+          <Button type="button" variant="secondary" disabled={uploadingVideo}>
+            {uploadingVideo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+            {uploadingVideo ? "Uploading..." : "Upload Video"}
+          </Button>
+        </div>
+      </div>
+
+      <p className="text-xs text-muted-foreground">ஒவ்வொரு செய்திக்கும் image அல்லது video அவசியம். Placeholder media இருந்தால் இங்கே replace செய்யலாம்.</p>
     </div>
   );
 };

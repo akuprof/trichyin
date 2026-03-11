@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
 import AdminMediaFields from "@/components/admin/AdminMediaFields";
+import ArticleMediaUpdater from "@/components/admin/ArticleMediaUpdater";
 
 type NewsPost = Tables<"news_posts"> & {
   video_url?: string | null;
@@ -470,28 +471,43 @@ const Admin = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {posts.map((post) => (
-                <div key={post.id} className="border border-border rounded-md p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <h3 className="font-heading text-lg uppercase">{post.title}</h3>
-                    <p className="text-xs text-muted-foreground mt-1">{post.category} • {post.slug}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{post.video_url ? "Video" : "Image"} media attached</p>
-                    <p className="text-xs text-muted-foreground mt-1">SEO: {(post.meta_title || "N/A").slice(0, 60)}</p>
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{post.excerpt || "சுருக்கம் இல்லை"}</p>
+              {posts.map((post) => {
+                const hasPlaceholder = (post.cover_image_url || "").includes("/placeholder.svg");
+
+                return (
+                  <div key={post.id} className="border border-border rounded-md p-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="space-y-1">
+                      <h3 className="font-heading text-lg uppercase">{post.title}</h3>
+                      <p className="text-xs text-muted-foreground">{post.category} • {post.slug}</p>
+                      <p className="text-xs text-muted-foreground">{post.video_url ? "Video" : "Image"} media attached</p>
+                      {hasPlaceholder && <p className="text-xs text-primary">⚠ Placeholder image உள்ளது — production media upload செய்யவும்.</p>}
+                      <p className="text-xs text-muted-foreground">SEO: {(post.meta_title || "N/A").slice(0, 60)}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{post.excerpt || "சுருக்கம் இல்லை"}</p>
+
+                      <ArticleMediaUpdater
+                        postId={post.id}
+                        userId={user.id}
+                        currentImageUrl={post.cover_image_url}
+                        currentVideoUrl={post.video_url}
+                        onUpdated={async () => {
+                          await fetchAdminState(user.id);
+                        }}
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button type="button" variant={post.is_published ? "secondary" : "default"} onClick={() => handleTogglePublish(post)}>
+                        {post.is_published ? "வரைவு" : "வெளியிடு"}
+                      </Button>
+                      <Button type="button" variant="outline" onClick={() => handleEdit(post)}>
+                        <Pencil className="h-4 w-4" /> திருத்து
+                      </Button>
+                      <Button type="button" variant="destructive" onClick={() => handleDelete(post.id)}>
+                        <Trash2 className="h-4 w-4" /> நீக்கு
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button type="button" variant={post.is_published ? "secondary" : "default"} onClick={() => handleTogglePublish(post)}>
-                      {post.is_published ? "வரைவு" : "வெளியிடு"}
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => handleEdit(post)}>
-                      <Pencil className="h-4 w-4" /> திருத்து
-                    </Button>
-                    <Button type="button" variant="destructive" onClick={() => handleDelete(post.id)}>
-                      <Trash2 className="h-4 w-4" /> நீக்கு
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               {!loadingPosts && posts.length === 0 && <p className="text-sm text-muted-foreground">பதிவுகள் இல்லை.</p>}
             </div>
           </CardContent>

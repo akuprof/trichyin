@@ -1,0 +1,153 @@
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Calendar, Tags } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+
+type NewsPost = Tables<"news_posts"> & {
+  video_url?: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string[] | null;
+};
+
+const ensureMetaTag = (attr: "name" | "property", key: string, value: string) => {
+  let tag = document.head.querySelector(`meta[${attr}='${key}']`) as HTMLMetaElement | null;
+  if (!tag) {
+    tag = document.createElement("meta");
+    tag.setAttribute(attr, key);
+    document.head.appendChild(tag);
+  }
+  tag.content = value;
+};
+
+const ensureCanonical = (url: string) => {
+  let link = document.head.querySelector("link[rel='canonical']") as HTMLLinkElement | null;
+  if (!link) {
+    link = document.createElement("link");
+    link.rel = "canonical";
+    document.head.appendChild(link);
+  }
+  link.href = url;
+};
+
+const NewsArticle = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [post, setPost] = useState<NewsPost | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!slug) return;
+
+    const loadPost = async () => {
+      const { data, error } = await supabase
+        .from("news_posts")
+        .select("*")
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .maybeSingle();
+
+      if (error || !data) {
+        toast({ title: "செய்தி கிடைக்கவில்லை", description: error?.message || "Invalid article slug", variant: "destructive" });
+        navigate("/", { replace: true });
+      } else {
+        setPost(data as NewsPost);
+      }
+      setLoading(false);
+    };
+
+    const trackView = async () => {
+      await supabase.from("page_view_events").insert({
+        path: window.location.pathname,
+        referrer: document.referrer || null,
+        user_agent: navigator.userAgent || null,
+        viewer_id: user?.id ?? null,
+      });
+    };
+
+    void Promise.all([loadPost(), trackView()]);
+  }, [slug, navigate, toast, user?.id]);
+
+  useEffect(() => {
+    if (!post) return;
+
+    const pageTitle = post.meta_title?.trim() || post.title;
+    const pageDescription = post.meta_description?.trim() || post.excerpt || post.title;
+    const canonical = `${window.location.origin}/news/${post.slug}`;
+    const keywords = post.meta_keywords?.length ? post.meta_keywords.join(", ") : `${post.category}, Trichy Insight`;
+
+    document.title = pageTitle;
+    ensureMetaTag("name", "description", pageDescription.slice(0, 160));
+    ensureMetaTag("name", "keywords", keywords);
+    ensureMetaTag("property", "og:title", pageTitle);
+    ensureMetaTag("property", "og:description", pageDescription.slice(0, 160));
+    ensureMetaTag("property", "og:type", "article");
+    if (post.cover_image_url) {
+      ensureMetaTag("property", "og:image", post.cover_image_url);
+    }
+    ensureCanonical(canonical);
+  }, [post]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">செய்தி ஏற்றப்படுகிறது...</p>
+      </main>
+    );
+  }
+
+  if (!post) return null;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main className="container py-8">
+        <Button type="button" variant="outline" onClick={() => navigate("/")}>
+          <ArrowLeft className="h-4 w-4" /> முகப்புக்கு திரும்ப
+        </Button>
+
+        <article className="mt-6 space-y-6">
+          <header className="space-y-3">
+            <p className="text-primary text-sm font-heading uppercase tracking-wider">{post.category}</p>
+            <h1 className="font-heading text-3xl md:text-4xl uppercase leading-tight">{post.title}</h1>
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {new Date(post.published_at || post.created_at).toLocaleString("ta-IN")}</span>
+              <span className="inline-flex items-center gap-1"><Tags className="h-4 w-4" /> {(post.meta_keywords || []).slice(0, 3).join(", ") || "Trichy"}</span>
+            </div>
+          </header>
+
+          <Card>
+            <CardContent className="p-0">
+              {post.video_url ? (
+                <video src={post.video_url} controls className="w-full max-h-[480px] object-cover" preload="metadata" />
+              ) : (
+                <img src={post.cover_image_url || "/placeholder.svg"} alt={post.title} className="w-full max-h-[480px] object-cover" loading="lazy" />
+              )}
+            </CardContent>
+          </Card>
+
+          <section className="space-y-4">
+            <p className="text-lg text-muted-foreground">{post.excerpt}</p>
+            {post.content.split("\n").filter(Boolean).map((paragraph, index) => (
+              <p key={index} className="text-base leading-8 text-foreground">
+                {paragraph}
+              </p>
+            ))}
+          </section>
+        </article>
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default NewsArticle;
