@@ -497,6 +497,11 @@ const Admin = () => {
               <BarChart3 className="h-5 w-5 text-primary" /> செய்தி பட்டியல்
             </CardTitle>
             <CardDescription>{loadingPosts ? "ஏற்றப்படுகிறது..." : `${posts.length} பதிவுகள்`}</CardDescription>
+            <div>
+              <Button type="button" variant="secondary" onClick={handleBulkGenerateImages} disabled={bulkGenerating || loadingPosts}>
+                <Sparkles className="h-4 w-4" /> {bulkGenerating ? "Auto generating..." : "Auto Generate Missing Images"}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
