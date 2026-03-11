@@ -28,6 +28,7 @@ export type Database = {
           slug: string
           title: string
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           category: string
@@ -42,6 +43,7 @@ export type Database = {
           slug: string
           title: string
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           category?: string
@@ -56,6 +58,7 @@ export type Database = {
           slug?: string
           title?: string
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: []
       }
