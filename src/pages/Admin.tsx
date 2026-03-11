@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { BarChart3, LogOut, Plus, Trash2, Pencil } from "lucide-react";
+import { BarChart3, LogOut, Plus, Trash2, Pencil, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -60,6 +60,7 @@ const Admin = () => {
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [bulkGenerating, setBulkGenerating] = useState(false);
   const [analytics, setAnalytics] = useState({ totalPosts: 0, publishedPosts: 0, totalViews: 0 });
   const [form, setForm] = useState<NewsFormState>(emptyForm);
   const [aiSourceUrl, setAiSourceUrl] = useState("");
@@ -180,6 +181,33 @@ const Admin = () => {
 
     toast({ title: "AI draft தயாராக உள்ளது" });
     setGenerating(false);
+  };
+
+  const handleBulkGenerateImages = async () => {
+    if (!user) return;
+    setBulkGenerating(true);
+
+    const { data, error } = await supabase.functions.invoke("bulk-generate-news-thumbnails", {
+      body: { limit: 12 },
+    });
+
+    if (error) {
+      toast({ title: "Auto image generation தோல்வி", description: error.message, variant: "destructive" });
+      setBulkGenerating(false);
+      return;
+    }
+
+    const result = (data || {}) as { processed?: number; updated?: number; failed?: Array<{ reason?: string }> };
+    const failedCount = result.failed?.length || 0;
+
+    toast({
+      title: "Auto image generation முடிந்தது",
+      description: `Processed: ${result.processed || 0}, Updated: ${result.updated || 0}, Failed: ${failedCount}`,
+      variant: failedCount > 0 ? "destructive" : "default",
+    });
+
+    await fetchAdminState(user.id);
+    setBulkGenerating(false);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -469,6 +497,11 @@ const Admin = () => {
               <BarChart3 className="h-5 w-5 text-primary" /> செய்தி பட்டியல்
             </CardTitle>
             <CardDescription>{loadingPosts ? "ஏற்றப்படுகிறது..." : `${posts.length} பதிவுகள்`}</CardDescription>
+            <div>
+              <Button type="button" variant="secondary" onClick={handleBulkGenerateImages} disabled={bulkGenerating || loadingPosts}>
+                <Sparkles className="h-4 w-4" /> {bulkGenerating ? "Auto generating..." : "Auto Generate Missing Images"}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
