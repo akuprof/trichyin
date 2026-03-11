@@ -143,7 +143,7 @@ const Admin = () => {
     } else {
       toast({ title: editingId ? "செய்தி புதுப்பிக்கப்பட்டது" : "செய்தி உருவாக்கப்பட்டது" });
       resetForm();
-      await fetchAdminState();
+      await fetchAdminState(user.id);
     }
 
     setSaving(false);
