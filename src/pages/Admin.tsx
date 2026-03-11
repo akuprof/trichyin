@@ -45,12 +45,11 @@ const Admin = () => {
     return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
   }, [posts]);
 
-  const fetchAdminState = async () => {
-    if (!user) return;
-
+  const fetchAdminState = async (currentUserId: string) => {
     setLoadingPosts(true);
+
     const [{ data: roles, error: roleError }, { data: postData, error: postsError }, { count: totalViews, error: viewsError }] = await Promise.all([
-      supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle(),
+      supabase.from("user_roles").select("role").eq("user_id", currentUserId).eq("role", "admin").maybeSingle(),
       supabase.from("news_posts").select("*").order("created_at", { ascending: false }),
       supabase.from("page_view_events").select("id", { count: "exact", head: true }),
     ]);
@@ -88,9 +87,15 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    if (!authLoading) {
-      void fetchAdminState();
+    if (authLoading) return;
+
+    if (!user) {
+      setCheckingRole(false);
+      setLoadingPosts(false);
+      return;
     }
+
+    void fetchAdminState(user.id);
   }, [authLoading, user?.id]);
 
   const buildSlug = (value: string) =>
