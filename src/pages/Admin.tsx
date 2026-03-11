@@ -45,12 +45,11 @@ const Admin = () => {
     return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
   }, [posts]);
 
-  const fetchAdminState = async () => {
-    if (!user) return;
-
+  const fetchAdminState = async (currentUserId: string) => {
     setLoadingPosts(true);
+
     const [{ data: roles, error: roleError }, { data: postData, error: postsError }, { count: totalViews, error: viewsError }] = await Promise.all([
-      supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle(),
+      supabase.from("user_roles").select("role").eq("user_id", currentUserId).eq("role", "admin").maybeSingle(),
       supabase.from("news_posts").select("*").order("created_at", { ascending: false }),
       supabase.from("page_view_events").select("id", { count: "exact", head: true }),
     ]);
@@ -88,9 +87,15 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    if (!authLoading) {
-      void fetchAdminState();
+    if (authLoading) return;
+
+    if (!user) {
+      setCheckingRole(false);
+      setLoadingPosts(false);
+      return;
     }
+
+    void fetchAdminState(user.id);
   }, [authLoading, user?.id]);
 
   const buildSlug = (value: string) =>
@@ -138,7 +143,7 @@ const Admin = () => {
     } else {
       toast({ title: editingId ? "செய்தி புதுப்பிக்கப்பட்டது" : "செய்தி உருவாக்கப்பட்டது" });
       resetForm();
-      await fetchAdminState();
+      await fetchAdminState(user.id);
     }
 
     setSaving(false);
@@ -159,16 +164,18 @@ const Admin = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!user) return;
     const { error } = await supabase.from("news_posts").delete().eq("id", id);
     if (error) {
       toast({ title: "நீக்க முடியவில்லை", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "செய்தி நீக்கப்பட்டது" });
-      await fetchAdminState();
+      await fetchAdminState(user.id);
     }
   };
 
   const handleTogglePublish = async (post: NewsPost) => {
+    if (!user) return;
     const nextPublished = !post.is_published;
     const { error } = await supabase
       .from("news_posts")
@@ -179,7 +186,7 @@ const Admin = () => {
       toast({ title: "நிலை மாற்ற முடியவில்லை", description: error.message, variant: "destructive" });
     } else {
       toast({ title: nextPublished ? "செய்தி வெளியிடப்பட்டது" : "வரைவு நிலைக்கு மாற்றப்பட்டது" });
-      await fetchAdminState();
+      await fetchAdminState(user.id);
     }
   };
 
