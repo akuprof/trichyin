@@ -198,7 +198,7 @@ const Admin = () => {
 
     const { error } = editingId
       ? await supabase.from("news_posts").update(payload as never).eq("id", editingId)
-      : await supabase.from("news_posts").insert({ ...(payload as never), created_by: user.id });
+      : await supabase.from("news_posts").insert({ ...(payload as Record<string, unknown>), created_by: user.id } as never);
 
     if (error) {
       toast({ title: "சேமிக்க முடியவில்லை", description: error.message, variant: "destructive" });
