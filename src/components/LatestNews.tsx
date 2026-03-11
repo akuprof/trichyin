@@ -3,46 +3,46 @@ import strayDogs from "@/assets/stray-dogs-uraiyur.png";
 
 const newsItems = [
   {
-    category: "Civic",
-    title: "Uraiyur Stray Dog Threat Leaves Residents Demanding Urgent Action",
-    excerpt: "Residents allege delayed municipal response while repeated attacks raise safety concerns in Uraiyur streets.",
-    time: "3 hours ago",
+    category: "குடிமை",
+    title: "உறையூர் தெருநாய் அச்சுறுத்தல்: உடனடி நடவடிக்கை கோரி குடியிருப்போர் வலியுறுத்தல்",
+    excerpt: "மீண்டும் மீண்டும் நடக்கும் தாக்குதல்களுக்கு மத்தியிலும் மாநகராட்சி பதில் தாமதமாகிறது என மக்கள் குற்றச்சாட்டு எழுப்புகின்றனர்.",
+    time: "3 மணி நேரம் முன்பு",
     views: "2.3K",
     imageUrl: strayDogs,
   },
   {
-    category: "Political",
-    title: "Ward-level Budget Debate Sparks Transparency Questions",
-    excerpt: "Council discussions highlight citizen requests for clearer spending data and project timelines.",
-    time: "5 hours ago",
+    category: "அரசியல்",
+    title: "வார்டு நிலை பட்ஜெட் விவாதம்: வெளிப்படைத் தன்மை குறித்து கேள்விகள்",
+    excerpt: "செலவுத்திட்ட விவரங்களும் திட்ட கால அட்டவணையும் தெளிவாக வெளியிட வேண்டும் என குடிமக்கள் கோரிக்கை வைத்தனர்.",
+    time: "5 மணி நேரம் முன்பு",
     views: "1.8K",
   },
   {
-    category: "Viral",
-    title: "Bus Stand Street Interview Gains Momentum Online",
-    excerpt: "Youth voices from Trichy’s new bus stand dominate social feeds after candid civic interview clips.",
-    time: "8 hours ago",
+    category: "வைரல்",
+    title: "பேருந்து நிலைய தெரு பேட்டி இணையத்தில் வேகமாக பரவி வருகிறது",
+    excerpt: "திருச்சி புதிய பேருந்து நிலையத்தில் பதிவான இளைஞர் குரல்கள் சமூக வலைதளங்களில் கவனம் ஈர்த்துள்ளன.",
+    time: "8 மணி நேரம் முன்பு",
     views: "4.7K",
   },
   {
-    category: "Business",
-    title: "Local Textile Cluster Sees Export Uptick This Quarter",
-    excerpt: "Small manufacturers report stronger order books amid renewed regional demand.",
-    time: "1 day ago",
+    category: "வணிகம்",
+    title: "உள்ளூர் நெசவு தொழில் ஏற்றுமதியில் இந்த காலாண்டில் முன்னேற்றம்",
+    excerpt: "பிராந்திய தேவைகள் உயர்வால் சிறு உற்பத்தியாளர்களுக்கு புதிய ஆர்டர்கள் அதிகரித்துள்ளன.",
+    time: "1 நாள் முன்பு",
     views: "1.2K",
   },
   {
-    category: "Civic",
-    title: "Monsoon Drain Works Begin in Key Low-Lying Areas",
-    excerpt: "Corporation teams begin phased desilting and drain restoration across vulnerable neighborhoods.",
-    time: "1 day ago",
+    category: "குடிமை",
+    title: "மழைக்கால வடிகால் பணிகள் தாழ்வான பகுதிகளில் தொடக்கம்",
+    excerpt: "அபாயப்பகுதிகளில் கட்டம் கட்டமாக சீரமைப்பு மற்றும் கழிவு அகற்றும் பணிகளை மாநகராட்சி தொடங்கியுள்ளது.",
+    time: "1 நாள் முன்பு",
     views: "980",
   },
   {
-    category: "Political",
-    title: "Ground Survey on Water Complaints Submitted to Officials",
-    excerpt: "Citizen volunteers submit compiled issue maps requesting faster resolution timelines.",
-    time: "2 days ago",
+    category: "அரசியல்",
+    title: "தண்ணீர் புகார் நிலவர வரைபடம் அதிகாரிகளிடம் சமர்ப்பிப்பு",
+    excerpt: "பிரச்சனைகள் விரைவில் தீர வேண்டும் என குடிமக்கள் தன்னார்வ குழுக்கள் ஒருங்கிணைந்த அறிக்கையை வழங்கின.",
+    time: "2 நாட்கள் முன்பு",
     views: "860",
   },
 ];
@@ -55,7 +55,7 @@ const LatestNews = () => {
     <section id="latest" className="container py-12">
       <div className="flex items-center gap-3 mb-8">
         <div className="w-1 h-8 bg-primary" />
-        <h2 className="font-heading text-3xl uppercase">Latest News</h2>
+        <h2 className="font-heading text-3xl uppercase">சமீபத்திய செய்திகள்</h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -66,7 +66,7 @@ const LatestNews = () => {
         </div>
 
         <div className="bg-card border border-border p-4">
-          <h3 className="font-heading uppercase text-sm tracking-wider text-primary mb-2 border-b border-border pb-2">More Stories</h3>
+          <h3 className="font-heading uppercase text-sm tracking-wider text-primary mb-2 border-b border-border pb-2">மேலும் செய்திகள்</h3>
           {sidebar.map((item, i) => (
             <NewsCard key={i} {...item} />
           ))}
