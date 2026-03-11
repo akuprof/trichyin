@@ -66,6 +66,7 @@ const LatestNews = () => {
         views: "—",
         imageUrl: post.cover_image_url || (!post.video_url && index === 0 ? strayDogs : undefined),
         videoUrl: post.video_url || undefined,
+        link: `/news/${post.slug}`,
       })),
     [posts],
   );
