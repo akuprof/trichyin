@@ -3,31 +3,31 @@ import { Building, Landmark, Flame, Store, ArrowRight } from "lucide-react";
 const categories = [
   {
     icon: Building,
-    title: "Civic Issues",
+    title: "குடிமை பிரச்சனைகள்",
     id: "civic",
-    description: "Road conditions, water supply, infrastructure failures — ground-level investigative reports.",
-    count: "24 Reports",
+    description: "சாலை நிலை, தண்ணீர் விநியோகம், உட்கட்டமைப்பு குறைபாடுகள் — தரை மட்ட விசாரணை அறிக்கைகள்.",
+    count: "24 அறிக்கைகள்",
   },
   {
     icon: Landmark,
-    title: "Political Analysis",
+    title: "அரசியல் பகுப்பாய்வு",
     id: "political",
-    description: "Fact-checks, statement analysis, election coverage with investigative depth.",
-    count: "18 Reports",
+    description: "உண்மைச் சரிபார்ப்பு, அறிக்கை ஆய்வு, தேர்தல் செய்தி — ஆழமான விசாரணையுடன்.",
+    count: "18 அறிக்கைகள்",
   },
   {
     icon: Flame,
-    title: "Viral",
+    title: "வைரல்",
     id: "viral",
-    description: "Trending stories, street reactions, youth pulse — the content Trichy shares most.",
-    count: "32 Videos",
+    description: "டிரெண்டாகும் கதைகள், தெரு எதிர்வினைகள், இளைஞர் துடிப்பு — திருச்சி அதிகம் பகிரும் உள்ளடக்கம்.",
+    count: "32 வீடியோக்கள்",
   },
   {
     icon: Store,
-    title: "Business Spotlight",
+    title: "வணிக சிறப்புப் பதிவு",
     id: "business",
-    description: "Local business features, market insights, and economic analysis for Trichy.",
-    count: "12 Features",
+    description: "திருச்சிக்கான உள்ளூர் வணிகக் கதைகள், சந்தை பார்வைகள் மற்றும் பொருளாதார ஆய்வுகள்.",
+    count: "12 சிறப்புகள்",
   },
 ];
 
@@ -37,7 +37,7 @@ const CategorySection = () => {
       <div className="container">
         <div className="flex items-center gap-3 mb-10">
           <div className="w-1 h-8 bg-primary" />
-          <h2 className="font-heading text-3xl uppercase">Our Coverage</h2>
+          <h2 className="font-heading text-3xl uppercase">எங்கள் செய்தி கவனம்</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

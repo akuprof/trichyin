@@ -7,31 +7,31 @@ import { useToast } from "@/hooks/use-toast";
 
 const packages = [
   {
-    name: "Shop Ad",
+    name: "கடை விளம்பரம்",
     price: "₹3,000",
-    period: "/month",
-    features: ["Video promotion", "Social media post", "Channel mention", "1 month visibility"],
+    period: "/மாதம்",
+    features: ["வீடியோ பிரமோஷன்", "சமூக ஊடக பதிவு", "சேனல் குறிப்பிடல்", "1 மாத காட்சிப்படுத்தல்"],
     highlight: false,
   },
   {
-    name: "Interview Package",
+    name: "நேர்காணல் பேக்கேஜ்",
     price: "₹5,000",
-    period: "/video",
-    features: ["Professional interview", "YouTube upload", "Social promotion", "Permanent listing"],
+    period: "/வீடியோ",
+    features: ["தொழில்முறை நேர்காணல்", "YouTube வெளியீடு", "சமூக ஊடக பிரமோஷன்", "நிரந்தர பட்டியல்"],
     highlight: true,
   },
   {
-    name: "Event Coverage",
+    name: "நிகழ்வு கவரேஜ்",
     price: "₹10,000",
-    period: "onwards",
-    features: ["Full event coverage", "Multi-platform post", "Highlight reel", "Live streaming option"],
+    period: "முதல்",
+    features: ["முழு நிகழ்வு செய்திக்கவனம்", "பல தள வெளியீடு", "ஹைலைட் ரீல்", "லைவ் ஸ்ட்ரீமிங் விருப்பம்"],
     highlight: false,
   },
   {
-    name: "Digital Bundle",
+    name: "டிஜிட்டல் பண்டில்",
     price: "₹20,000",
-    period: "/month",
-    features: ["Complete visibility", "Website banner", "Video + social", "Priority coverage", "Analytics report"],
+    period: "/மாதம்",
+    features: ["முழுமையான காட்சியளிப்பு", "இணையதள பேனர்", "வீடியோ + சமூக ஊடகம்", "முன்னுரிமை கவனம்", "அனலிட்டிக்ஸ் அறிக்கை"],
     highlight: false,
   },
 ];
@@ -62,12 +62,12 @@ const RateCard = () => {
       <div className="text-center mb-12">
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className="w-12 h-0.5 bg-primary" />
-          <span className="font-heading text-sm uppercase tracking-widest text-primary">Advertise With Us</span>
+          <span className="font-heading text-sm uppercase tracking-widest text-primary">எங்களுடன் விளம்பரம் செய்யுங்கள்</span>
           <div className="w-12 h-0.5 bg-primary" />
         </div>
-        <h2 className="font-heading text-4xl uppercase">Rate Card</h2>
+        <h2 className="font-heading text-4xl uppercase">விளம்பர கட்டண அட்டை</h2>
         <p className="text-muted-foreground mt-2 max-w-lg mx-auto">
-          Affordable digital visibility for Trichy businesses. Reach thousands of engaged local viewers.
+          திருச்சி வணிகங்களுக்கு மலிவு டிஜிட்டல் காட்சியளிப்பு. ஆயிரக்கணக்கான உள்ளூர் பார்வையாளர்களை எளிதில் அடையுங்கள்.
         </p>
       </div>
 
@@ -76,7 +76,7 @@ const RateCard = () => {
           <div key={pkg.name} className={`border p-6 flex flex-col ${pkg.highlight ? "border-primary bg-primary/5 relative" : "border-border bg-card"}`}>
             {pkg.highlight && (
               <span className="absolute -top-3 left-4 bg-primary text-primary-foreground px-3 py-0.5 text-xs font-heading uppercase tracking-wider font-bold">
-                Popular
+                அதிகம் தேர்வு செய்யப்பட்டது
               </span>
             )}
             <h3 className="font-heading text-lg uppercase">{pkg.name}</h3>
@@ -96,7 +96,7 @@ const RateCard = () => {
               onClick={() => setForm((prev) => ({ ...prev, package: pkg.name }))}
               className={`mt-6 py-2.5 font-heading uppercase tracking-wider text-sm font-bold transition-colors ${pkg.highlight ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
             >
-              Get Started
+              தொடங்குங்கள்
             </button>
           </div>
         ))}

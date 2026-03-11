@@ -4,16 +4,16 @@ import { Play, TrendingUp } from "lucide-react";
 const HeroSection = () => {
   return (
     <section className="relative h-[70vh] min-h-[500px] overflow-hidden">
-      <img src={heroBanner} alt="Trichy Insight - Digital News" className="absolute inset-0 w-full h-full object-cover" />
+      <img src={heroBanner} alt="திருச்சி இன்சைட் டிஜிட்டல் செய்திகள்" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-t from-secondary via-secondary/70 to-transparent" />
 
       <div className="relative container h-full flex flex-col justify-end pb-12">
         <div className="flex items-center gap-2 mb-3">
           <span className="bg-primary text-primary-foreground px-3 py-1 text-xs font-heading uppercase tracking-widest font-bold">
-            Investigative Report
+            விசாரணை சிறப்பறிக்கை
           </span>
           <span className="text-news-highlight text-xs font-semibold flex items-center gap-1">
-            <TrendingUp className="h-3 w-3" /> Trending
+            <TrendingUp className="h-3 w-3" /> டிரெண்டிங்
           </span>
         </div>
 
@@ -22,15 +22,15 @@ const HeroSection = () => {
         </h2>
 
         <p className="text-muted-foreground mt-4 max-w-xl text-lg">
-          Investigative tone. Youth speed. Analytical clarity. Your city's digital voice for truth.
+          விசாரணை நோக்கு. இளைஞர் வேகம். தெளிவான பகுப்பாய்வு. உங்கள் நகரத்தின் உண்மை குரல்.
         </p>
 
         <div className="flex items-center gap-4 mt-6">
           <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 font-heading uppercase tracking-wider text-sm font-bold flex items-center gap-2 transition-colors">
-            <Play className="h-4 w-4" /> Watch Latest
+            <Play className="h-4 w-4" /> சமீபத்தியதை பார்க்க
           </button>
           <button className="border border-muted-foreground/30 text-secondary-foreground hover:border-primary px-6 py-3 font-heading uppercase tracking-wider text-sm font-bold transition-colors">
-            Subscribe
+            பதிவு செய்ய
           </button>
         </div>
       </div>

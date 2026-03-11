@@ -35,22 +35,22 @@ const Footer = () => {
           </div>
 
           <div>
-            <h3 className="font-heading uppercase text-sm tracking-wider mb-4 text-primary">Quick Links</h3>
+            <h3 className="font-heading uppercase text-sm tracking-wider mb-4 text-primary">விரைவு இணைப்புகள்</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#latest" className="hover:text-primary transition-colors">Latest News</a></li>
-              <li><a href="#civic" className="hover:text-primary transition-colors">Civic Issues</a></li>
-              <li><a href="#political" className="hover:text-primary transition-colors">Political Analysis</a></li>
-              <li><a href="#viral" className="hover:text-primary transition-colors">Viral Content</a></li>
-              <li><a href="#advertise" className="hover:text-primary transition-colors">Advertise With Us</a></li>
+              <li><a href="#latest" className="hover:text-primary transition-colors">சமீபத்திய செய்திகள்</a></li>
+              <li><a href="#civic" className="hover:text-primary transition-colors">குடிமை பிரச்சனைகள்</a></li>
+              <li><a href="#political" className="hover:text-primary transition-colors">அரசியல் பகுப்பாய்வு</a></li>
+              <li><a href="#viral" className="hover:text-primary transition-colors">வைரல் உள்ளடக்கம்</a></li>
+              <li><a href="#advertise" className="hover:text-primary transition-colors">எங்களுடன் விளம்பரம் செய்ய</a></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-heading uppercase text-sm tracking-wider mb-4 text-primary">Contact</h3>
+            <h3 className="font-heading uppercase text-sm tracking-wider mb-4 text-primary">தொடர்பு</h3>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary shrink-0" />
-                Tiruchirappalli, Tamil Nadu
+                திருச்சிராப்பள்ளி, தமிழ்நாடு
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-primary shrink-0" />
@@ -67,7 +67,7 @@ const Footer = () => {
 
       <div className="border-t border-muted-foreground/20">
         <div className="container py-4 text-center text-xs text-muted-foreground">
-          © 2026 Trichy Insight. All rights reserved. | Digital Investigative Media – Tiruchirappalli
+          © 2026 Trichy Insight. அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை. | டிஜிட்டல் விசாரணை ஊடகம் – திருச்சிராப்பள்ளி
         </div>
       </div>
     </footer>
