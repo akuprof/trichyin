@@ -164,16 +164,18 @@ const Admin = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!user) return;
     const { error } = await supabase.from("news_posts").delete().eq("id", id);
     if (error) {
       toast({ title: "நீக்க முடியவில்லை", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "செய்தி நீக்கப்பட்டது" });
-      await fetchAdminState();
+      await fetchAdminState(user.id);
     }
   };
 
   const handleTogglePublish = async (post: NewsPost) => {
+    if (!user) return;
     const nextPublished = !post.is_published;
     const { error } = await supabase
       .from("news_posts")
@@ -184,7 +186,7 @@ const Admin = () => {
       toast({ title: "நிலை மாற்ற முடியவில்லை", description: error.message, variant: "destructive" });
     } else {
       toast({ title: nextPublished ? "செய்தி வெளியிடப்பட்டது" : "வரைவு நிலைக்கு மாற்றப்பட்டது" });
-      await fetchAdminState();
+      await fetchAdminState(user.id);
     }
   };
 
