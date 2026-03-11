@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        heading: ["Oswald", "sans-serif"],
+        body: ["Source Sans 3", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,6 +61,11 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "news-red": "hsl(var(--news-red))",
+        "news-dark": "hsl(var(--news-dark))",
+        "news-gray": "hsl(var(--news-gray))",
+        "news-light": "hsl(var(--news-light))",
+        "news-highlight": "hsl(var(--news-highlight))",
       },
       borderRadius: {
         lg: "var(--radius)",
