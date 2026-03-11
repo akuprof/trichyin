@@ -19,13 +19,13 @@ const Footer = () => {
               இது Trichy Insight.
             </p>
             <div className="flex gap-3 mt-4">
-              <a href="https://www.youtube.com/trichyinsight/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 border border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:text-primary transition-colors">
+              <a href="https://www.youtube.com/@trichyinsight" target="_blank" rel="noopener noreferrer" className="w-9 h-9 border border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:text-primary transition-colors">
                 <Youtube className="h-4 w-4" />
               </a>
               <a href="https://www.instagram.com/trichyinsight/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 border border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:text-primary transition-colors">
                 <Instagram className="h-4 w-4" />
               </a>
-              <a href="https://www.facebook.com/trichyinsight/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 border border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:text-primary transition-colors">
+              <a href="https://www.facebook.com/trichyinsight" target="_blank" rel="noopener noreferrer" className="w-9 h-9 border border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:text-primary transition-colors">
                 <Facebook className="h-4 w-4" />
               </a>
               <a href="https://www.trichyinsight.online/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 border border-muted-foreground/30 flex items-center justify-center hover:border-primary hover:text-primary transition-colors">
