@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
 import AdminMediaFields from "@/components/admin/AdminMediaFields";
+import ArticleMediaUpdater from "@/components/admin/ArticleMediaUpdater";
 
 type NewsPost = Tables<"news_posts"> & {
   video_url?: string | null;
