@@ -10,18 +10,24 @@ interface NewsCardProps {
   featured?: boolean;
   link?: string;
   imageUrl?: string;
+  videoUrl?: string;
 }
 
-const NewsCard = ({ category, title, excerpt, time, views, featured, link, imageUrl }: NewsCardProps) => {
+const NewsCard = ({ category, title, excerpt, time, views, featured, link, imageUrl, videoUrl }: NewsCardProps) => {
   const Wrapper = link ? Link : "div";
   const wrapperProps = link ? { to: link } : {};
+  const hasVideo = Boolean(videoUrl);
 
   if (featured) {
     return (
       <Wrapper {...(wrapperProps as any)} className="block">
         <article className="group cursor-pointer bg-card border border-border hover:border-primary/50 transition-all">
           <div className="aspect-video bg-secondary relative overflow-hidden">
-            {imageUrl && <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" />}
+            {hasVideo ? (
+              <video src={videoUrl} className="absolute inset-0 w-full h-full object-cover" muted playsInline preload="metadata" />
+            ) : (
+              imageUrl && <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-secondary to-transparent" />
             <div className="absolute bottom-3 left-3">
               <span className="bg-primary text-primary-foreground px-2 py-0.5 text-xs font-heading uppercase tracking-wider font-bold">
@@ -50,7 +56,11 @@ const NewsCard = ({ category, title, excerpt, time, views, featured, link, image
     <Wrapper {...(wrapperProps as any)} className="block">
       <article className="group cursor-pointer flex gap-4 py-4 border-b border-border last:border-0 hover:bg-muted/50 px-2 transition-colors">
         <div className="w-24 h-16 bg-secondary shrink-0 relative overflow-hidden">
-          {imageUrl && <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" />}
+          {hasVideo ? (
+            <video src={videoUrl} className="absolute inset-0 w-full h-full object-cover" muted playsInline preload="metadata" />
+          ) : (
+            imageUrl && <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+          )}
           <span className="absolute bottom-1 left-1 bg-primary text-primary-foreground px-1 py-0.5 text-[10px] font-heading uppercase tracking-wider font-bold">
             {category}
           </span>

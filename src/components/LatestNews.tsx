@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
-type NewsPost = Tables<"news_posts">;
+type NewsPost = Tables<"news_posts"> & { video_url?: string | null };
 
 const formatTimeAgoTa = (dateString: string) => {
   const publishedDate = new Date(dateString);
@@ -47,7 +47,7 @@ const LatestNews = () => {
         toast({ title: "செய்திகள் ஏற்ற முடியவில்லை", description: error.message, variant: "destructive" });
         setPosts([]);
       } else {
-        setPosts(data || []);
+        setPosts((data as NewsPost[]) || []);
       }
 
       setLoading(false);
@@ -64,7 +64,8 @@ const LatestNews = () => {
         excerpt: post.excerpt || "சுருக்கம் இல்லை",
         time: formatTimeAgoTa(post.published_at || post.created_at),
         views: "—",
-        imageUrl: post.cover_image_url || (index === 0 ? strayDogs : undefined),
+        imageUrl: post.cover_image_url || (!post.video_url && index === 0 ? strayDogs : undefined),
+        videoUrl: post.video_url || undefined,
       })),
     [posts],
   );

@@ -10,16 +10,30 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
+import AdminMediaFields from "@/components/admin/AdminMediaFields";
 
-type NewsPost = Tables<"news_posts">;
+type NewsPost = Tables<"news_posts"> & { video_url?: string | null };
 
-const emptyForm = {
+interface NewsFormState {
+  title: string;
+  slug: string;
+  category: string;
+  excerpt: string;
+  content: string;
+  cover_image_url: string;
+  video_url: string;
+  is_published: boolean;
+}
+
+const emptyForm: NewsFormState = {
   title: "",
   slug: "",
   category: "",
   excerpt: "",
   content: "",
   cover_image_url: "",
+  video_url: "",
   is_published: false,
 };
 
@@ -32,9 +46,12 @@ const Admin = () => {
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [analytics, setAnalytics] = useState({ totalPosts: 0, publishedPosts: 0, totalViews: 0 });
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState<NewsFormState>(emptyForm);
+  const [aiSourceUrl, setAiSourceUrl] = useState("");
+  const [aiSourceText, setAiSourceText] = useState("");
 
   const topCategory = useMemo(() => {
     if (!posts.length) return "—";
@@ -73,9 +90,10 @@ const Admin = () => {
     if (postsError) {
       toast({ title: "செய்திகள் ஏற்ற முடியவில்லை", description: postsError.message, variant: "destructive" });
     } else {
-      setPosts(postData || []);
-      const totalPosts = postData?.length ?? 0;
-      const publishedPosts = (postData || []).filter((item) => item.is_published).length;
+      const typedPosts = (postData as NewsPost[]) || [];
+      setPosts(typedPosts);
+      const totalPosts = typedPosts.length;
+      const publishedPosts = typedPosts.filter((item) => item.is_published).length;
       setAnalytics({ totalPosts, publishedPosts, totalViews: totalViews || 0 });
     }
 
@@ -111,9 +129,52 @@ const Admin = () => {
     setEditingId(null);
   };
 
+  const handleAIGenerate = async () => {
+    if (!aiSourceUrl.trim() && !aiSourceText.trim()) {
+      toast({ title: "Input தேவை", description: "URL அல்லது குறிப்புகள் கொடுக்கவும்.", variant: "destructive" });
+      return;
+    }
+
+    setGenerating(true);
+
+    const { data, error } = await supabase.functions.invoke("generate-news-article", {
+      body: {
+        sourceUrl: aiSourceUrl.trim() || null,
+        sourceText: aiSourceText.trim() || null,
+      },
+    });
+
+    if (error) {
+      toast({ title: "AI உருவாக்கம் தோல்வி", description: error.message, variant: "destructive" });
+      setGenerating(false);
+      return;
+    }
+
+    const result = (data || {}) as Partial<NewsFormState>;
+
+    setForm((prev) => ({
+      ...prev,
+      title: result.title || prev.title,
+      slug: result.slug || prev.slug,
+      category: result.category || prev.category,
+      excerpt: result.excerpt || prev.excerpt,
+      content: result.content || prev.content,
+      cover_image_url: result.cover_image_url || prev.cover_image_url,
+      video_url: result.video_url || prev.video_url,
+    }));
+
+    toast({ title: "AI draft தயாராக உள்ளது" });
+    setGenerating(false);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    if (!form.cover_image_url.trim() && !form.video_url.trim()) {
+      toast({ title: "Media தேவை", description: "ஒவ்வொரு செய்திக்கும் image அல்லது video அவசியம்.", variant: "destructive" });
+      return;
+    }
 
     const finalSlug = form.slug.trim() || buildSlug(form.title);
     if (!finalSlug) {
@@ -123,20 +184,21 @@ const Admin = () => {
 
     setSaving(true);
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       title: form.title.trim(),
       slug: finalSlug,
       category: form.category.trim(),
       excerpt: form.excerpt.trim() || null,
       content: form.content.trim(),
       cover_image_url: form.cover_image_url.trim() || null,
+      video_url: form.video_url.trim() || null,
       is_published: form.is_published,
       published_at: form.is_published ? new Date().toISOString() : null,
     };
 
     const { error } = editingId
-      ? await supabase.from("news_posts").update(payload).eq("id", editingId)
-      : await supabase.from("news_posts").insert({ ...payload, created_by: user.id });
+      ? await supabase.from("news_posts").update(payload as never).eq("id", editingId)
+      : await supabase.from("news_posts").insert({ ...(payload as Record<string, unknown>), created_by: user.id } as never);
 
     if (error) {
       toast({ title: "சேமிக்க முடியவில்லை", description: error.message, variant: "destructive" });
@@ -158,6 +220,7 @@ const Admin = () => {
       excerpt: post.excerpt || "",
       content: post.content,
       cover_image_url: post.cover_image_url || "",
+      video_url: post.video_url || "",
       is_published: post.is_published,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -215,7 +278,9 @@ const Admin = () => {
             <CardDescription>உங்கள் account-க்கு admin role இல்லை; admin dashboard அணுக முடியாது.</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">Cloud Database-ல் user_roles table-இல் உங்கள் user_idக்கு <strong>admin</strong> role சேர்க்க வேண்டும்.</p>
+            <p className="text-sm text-muted-foreground">
+              Cloud Database-ல் user_roles table-இல் உங்கள் user_idக்கு <strong>admin</strong> role சேர்க்க வேண்டும்.
+            </p>
           </CardContent>
         </Card>
       </main>
@@ -267,6 +332,15 @@ const Admin = () => {
           </Card>
         </div>
 
+        <AdminAIAssistant
+          sourceUrl={aiSourceUrl}
+          sourceText={aiSourceText}
+          generating={generating}
+          onSourceUrlChange={setAiSourceUrl}
+          onSourceTextChange={setAiSourceText}
+          onGenerate={handleAIGenerate}
+        />
+
         <Card>
           <CardHeader>
             <CardTitle className="font-heading text-xl uppercase">{editingId ? "செய்தி திருத்து" : "புதிய செய்தி உருவாக்கு"}</CardTitle>
@@ -284,16 +358,18 @@ const Admin = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Input id="category" value={form.category} onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cover">Cover Image URL</Label>
-                  <Input id="cover" value={form.cover_image_url} onChange={(e) => setForm((p) => ({ ...p, cover_image_url: e.target.value }))} />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Input id="category" value={form.category} onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))} required />
               </div>
+
+              <AdminMediaFields
+                userId={user.id}
+                imageUrl={form.cover_image_url}
+                videoUrl={form.video_url}
+                onImageUrlChange={(value) => setForm((p) => ({ ...p, cover_image_url: value }))}
+                onVideoUrlChange={(value) => setForm((p) => ({ ...p, video_url: value }))}
+              />
 
               <div className="space-y-2">
                 <Label htmlFor="excerpt">சுருக்கம்</Label>
@@ -343,6 +419,7 @@ const Admin = () => {
                   <div>
                     <h3 className="font-heading text-lg uppercase">{post.title}</h3>
                     <p className="text-xs text-muted-foreground mt-1">{post.category} • {post.slug}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{post.video_url ? "Video" : "Image"} media attached</p>
                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{post.excerpt || "சுருக்கம் இல்லை"}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
