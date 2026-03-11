@@ -60,6 +60,7 @@ const Admin = () => {
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [bulkGenerating, setBulkGenerating] = useState(false);
   const [analytics, setAnalytics] = useState({ totalPosts: 0, publishedPosts: 0, totalViews: 0 });
   const [form, setForm] = useState<NewsFormState>(emptyForm);
   const [aiSourceUrl, setAiSourceUrl] = useState("");
