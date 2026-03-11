@@ -19,6 +19,9 @@ type GeneratedArticle = {
   content: string;
   cover_image_url: string | null;
   video_url: string | null;
+  meta_title: string;
+  meta_description: string;
+  meta_keywords: string[];
 };
 
 const slugify = (value: string) =>
@@ -46,6 +49,21 @@ const stripHtml = (html: string) =>
 const extractMeta = (html: string, property: string) => {
   const regex = new RegExp(`<meta[^>]+property=["']${property}["'][^>]+content=["']([^"']+)["'][^>]*>`, "i");
   return html.match(regex)?.[1] ?? null;
+};
+
+const normalizeKeywords = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.map((keyword) => String(keyword).trim()).filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((keyword) => keyword.trim())
+      .filter(Boolean);
+  }
+
+  return [];
 };
 
 const readSourceUrl = async (url: string) => {
@@ -155,13 +173,17 @@ Return ONLY valid JSON with these fields:
   "excerpt": "string (max 220 chars)",
   "content": "string (minimum 4 paragraphs, natural journalistic tone)",
   "cover_image_url": "string or null",
-  "video_url": "string or null"
+  "video_url": "string or null",
+  "meta_title": "string under 60 characters",
+  "meta_description": "string under 160 characters",
+  "meta_keywords": ["keyword1", "keyword2", "keyword3"]
 }
 
 Rules:
 - Make writing natural and human-like, not robotic.
 - Keep facts consistent with provided input.
 - Prefer Tamil language output.
+- SEO fields must be specific and relevant.
 - If media URL is unknown, return null.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -177,7 +199,7 @@ Rules:
           {
             role: "system",
             content:
-              "You are an expert Tamil newsroom editor. Write reliable, clear, humanized articles and return strict JSON only.",
+              "You are an expert Tamil newsroom editor. Write reliable, clear, humanized articles with SEO metadata and return strict JSON only.",
           },
           { role: "user", content: prompt },
         ],
@@ -216,14 +238,19 @@ Rules:
       throw new Error("AI output missing required fields");
     }
 
+    const normalizedExcerpt = (parsed.excerpt || normalizedContent.slice(0, 220)).trim();
+
     const article: GeneratedArticle = {
       title: normalizedTitle,
       slug: slugify(parsed.slug || normalizedTitle),
       category: (parsed.category || "உள்ளூர்").trim(),
-      excerpt: (parsed.excerpt || normalizedContent.slice(0, 220)).trim(),
+      excerpt: normalizedExcerpt,
       content: normalizedContent,
       cover_image_url: (parsed.cover_image_url || ogImage || null)?.trim() || null,
       video_url: (parsed.video_url || ogVideo || null)?.trim() || null,
+      meta_title: (parsed.meta_title || normalizedTitle).trim().slice(0, 60),
+      meta_description: (parsed.meta_description || normalizedExcerpt).trim().slice(0, 160),
+      meta_keywords: normalizeKeywords(parsed.meta_keywords),
     };
 
     return new Response(JSON.stringify(article), {
