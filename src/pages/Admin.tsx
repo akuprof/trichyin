@@ -183,6 +183,33 @@ const Admin = () => {
     setGenerating(false);
   };
 
+  const handleBulkGenerateImages = async () => {
+    if (!user) return;
+    setBulkGenerating(true);
+
+    const { data, error } = await supabase.functions.invoke("bulk-generate-news-thumbnails", {
+      body: { limit: 12 },
+    });
+
+    if (error) {
+      toast({ title: "Auto image generation தோல்வி", description: error.message, variant: "destructive" });
+      setBulkGenerating(false);
+      return;
+    }
+
+    const result = (data || {}) as { processed?: number; updated?: number; failed?: Array<{ reason?: string }> };
+    const failedCount = result.failed?.length || 0;
+
+    toast({
+      title: "Auto image generation முடிந்தது",
+      description: `Processed: ${result.processed || 0}, Updated: ${result.updated || 0}, Failed: ${failedCount}`,
+      variant: failedCount > 0 ? "destructive" : "default",
+    });
+
+    await fetchAdminState(user.id);
+    setBulkGenerating(false);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) return;
