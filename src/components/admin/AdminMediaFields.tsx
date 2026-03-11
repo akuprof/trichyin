@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Upload, Video } from "lucide-react";
+import { Loader2, Sparkles, Upload, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,11 @@ interface AdminMediaFieldsProps {
   userId: string;
   imageUrl: string;
   videoUrl: string;
+  aiContext: {
+    title: string;
+    category: string;
+    excerpt: string;
+  };
   onImageUrlChange: (value: string) => void;
   onVideoUrlChange: (value: string) => void;
 }
@@ -35,10 +40,11 @@ const uploadToNewsMedia = async (userId: string, file: File) => {
   return data.publicUrl;
 };
 
-const AdminMediaFields = ({ userId, imageUrl, videoUrl, onImageUrlChange, onVideoUrlChange }: AdminMediaFieldsProps) => {
+const AdminMediaFields = ({ userId, imageUrl, videoUrl, aiContext, onImageUrlChange, onVideoUrlChange }: AdminMediaFieldsProps) => {
   const { toast } = useToast();
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -92,6 +98,42 @@ const AdminMediaFields = ({ userId, imageUrl, videoUrl, onImageUrlChange, onVide
     }
   };
 
+  const handleGenerateAiImage = async () => {
+    if (!aiContext.title.trim()) {
+      toast({ title: "தலைப்பு தேவை", description: "AI thumbnail generate செய்ய title நிரப்பவும்.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      setGeneratingImage(true);
+      const { data, error } = await supabase.functions.invoke("generate-news-thumbnail", {
+        body: {
+          title: aiContext.title.trim(),
+          category: aiContext.category.trim() || "உள்ளூர்",
+          excerpt: aiContext.excerpt.trim() || null,
+        },
+      });
+
+      if (error) throw error;
+
+      const imageUrl = (data as { imageUrl?: string } | null)?.imageUrl;
+      if (!imageUrl) {
+        throw new Error("AI image URL not returned");
+      }
+
+      onImageUrlChange(imageUrl);
+      toast({ title: "AI thumbnail உருவாக்கப்பட்டது" });
+    } catch (error) {
+      toast({
+        title: "AI thumbnail தோல்வி",
+        description: error instanceof Error ? error.message : "Generation failed",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -102,10 +144,14 @@ const AdminMediaFields = ({ userId, imageUrl, videoUrl, onImageUrlChange, onVide
       <div className="space-y-2">
         <Label htmlFor="image-upload">Image Upload</Label>
         <div className="flex flex-wrap items-center gap-2">
-          <Input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} className="max-w-sm" />
-          <Button type="button" variant="secondary" disabled={uploadingImage}>
+          <Input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage || generatingImage} className="max-w-sm" />
+          <Button type="button" variant="secondary" disabled={uploadingImage || generatingImage}>
             {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
             {uploadingImage ? "Uploading..." : "Upload Image"}
+          </Button>
+          <Button type="button" variant="outline" onClick={handleGenerateAiImage} disabled={generatingImage || uploadingImage}>
+            {generatingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {generatingImage ? "Generating..." : "AI Generate Thumbnail"}
           </Button>
         </div>
       </div>
@@ -131,7 +177,7 @@ const AdminMediaFields = ({ userId, imageUrl, videoUrl, onImageUrlChange, onVide
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground">ஒவ்வொரு செய்திக்கும் image அல்லது video அவசியம். Placeholder media இருந்தால் இங்கே replace செய்யலாம்.</p>
+      <p className="text-xs text-muted-foreground">ஒவ்வொரு செய்திக்கும் image அல்லது video அவசியம். Placeholder media இருந்தால் upload அல்லது AI thumbnail கொண்டு replace செய்யலாம்.</p>
     </div>
   );
 };

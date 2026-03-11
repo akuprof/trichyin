@@ -393,6 +393,7 @@ const Admin = () => {
                 userId={user.id}
                 imageUrl={form.cover_image_url}
                 videoUrl={form.video_url}
+                aiContext={{ title: form.title, category: form.category, excerpt: form.excerpt }}
                 onImageUrlChange={(value) => setForm((p) => ({ ...p, cover_image_url: value }))}
                 onVideoUrlChange={(value) => setForm((p) => ({ ...p, video_url: value }))}
               />
