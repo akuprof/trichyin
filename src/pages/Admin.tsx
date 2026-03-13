@@ -504,6 +504,53 @@ const Admin = () => {
           }}
         />
 
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-heading text-xl uppercase">Social Auto Post Settings</CardTitle>
+            <CardDescription>Publish ஆனதும் Zapier/Make webhook-க்கு அனுப்பப்படும்.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSaveSocialSettings} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="social-webhook-url">Webhook URL</Label>
+                <Input
+                  id="social-webhook-url"
+                  placeholder="https://hooks.zapier.com/..."
+                  value={webhookUrlInput}
+                  onChange={(e) => setWebhookUrlInput(e.target.value)}
+                  disabled={savingSocialSettings}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="social-secret-token">Secret Token (Optional)</Label>
+                <Input
+                  id="social-secret-token"
+                  placeholder="Optional security token"
+                  value={secretTokenInput}
+                  onChange={(e) => setSecretTokenInput(e.target.value)}
+                  disabled={savingSocialSettings}
+                />
+              </div>
+
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={socialEnabled}
+                  onChange={(e) => setSocialEnabled(e.target.checked)}
+                  className="h-4 w-4 rounded border-input"
+                  disabled={savingSocialSettings}
+                />
+                சமூக auto post இயக்கவும்
+              </label>
+
+              <Button type="submit" disabled={savingSocialSettings}>
+                {savingSocialSettings ? "Saving..." : "Save Social Settings"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
         <AdminAIAssistant
           sourceUrl={aiSourceUrl}
           sourceText={aiSourceText}
