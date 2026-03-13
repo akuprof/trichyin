@@ -92,11 +92,18 @@ const Admin = () => {
   const fetchAdminState = async (currentUserId: string) => {
     setLoadingPosts(true);
 
-    const [{ data: roles, error: roleError }, { data: postData, error: postsError }, { count: totalViews, error: viewsError }] = await Promise.all([
-      supabase.from("user_roles").select("role").eq("user_id", currentUserId).eq("role", "admin").maybeSingle(),
-      supabase.from("news_posts").select("*").order("created_at", { ascending: false }),
-      supabase.from("page_view_events").select("id", { count: "exact", head: true }),
-    ]);
+    const [{ data: roles, error: roleError }, { data: postData, error: postsError }, { count: totalViews, error: viewsError }, { data: socialData, error: socialError }] =
+      await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", currentUserId).eq("role", "admin").maybeSingle(),
+        supabase.from("news_posts").select("*").order("created_at", { ascending: false }),
+        supabase.from("page_view_events").select("id", { count: "exact", head: true }),
+        (supabase as any)
+          .from("social_publish_settings")
+          .select("id, webhook_url, enabled, secret_token")
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
     if (roleError) {
       toast({ title: "அனுமதி சரிபார்ப்பு தோல்வி", description: roleError.message, variant: "destructive" });
