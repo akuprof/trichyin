@@ -250,7 +250,7 @@ Rules:
       category: (parsed.category || "உள்ளூர்").trim(),
       excerpt: normalizedExcerpt,
       content: normalizedContent,
-      cover_image_url: (parsed.cover_image_url || ogImage || null)?.trim() || null,
+      cover_image_url: (parsed.cover_image_url || imageUrlInput || ogImage || null)?.trim() || null,
       video_url: (parsed.video_url || ogVideo || null)?.trim() || null,
       meta_title: (parsed.meta_title || normalizedTitle).trim().slice(0, 60),
       meta_description: (parsed.meta_description || normalizedExcerpt).trim().slice(0, 160),
