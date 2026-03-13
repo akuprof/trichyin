@@ -256,8 +256,31 @@ Rules:
       meta_description: (parsed.meta_description || normalizedExcerpt).trim().slice(0, 160),
       meta_keywords: normalizeKeywords(parsed.meta_keywords),
     };
+    const { data: insertedPost, error: insertError } = await supabase
+      .from("news_posts")
+      .insert({
+        title: article.title,
+        slug: article.slug,
+        category: article.category,
+        excerpt: article.excerpt,
+        content: article.content,
+        cover_image_url: article.cover_image_url,
+        video_url: article.video_url,
+        meta_title: article.meta_title,
+        meta_description: article.meta_description,
+        meta_keywords: article.meta_keywords,
+        is_published: true,
+        published_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
 
-    return new Response(JSON.stringify(article), {
+    if (insertError) {
+      throw new Error(`Failed to insert article: ${insertError.message}`);
+    }
+
+    // Return the inserted post
+    return new Response(JSON.stringify(insertedPost), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
