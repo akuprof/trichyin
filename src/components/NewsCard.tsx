@@ -1,5 +1,6 @@
 import { Clock, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo.png";
 
 interface NewsCardProps {
   category: string;
@@ -27,6 +28,15 @@ const NewsCard = ({ category, title, excerpt, time, views, featured, link, image
               <video src={videoUrl} className="absolute inset-0 w-full h-full object-cover" muted playsInline preload="metadata" />
             ) : (
               imageUrl && <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+            )}
+            {(hasVideo || imageUrl) && (
+              <img
+                src={logo}
+                alt="Copyright watermark"
+                className="absolute bottom-2 right-2 w-14 h-auto pointer-events-none select-none"
+                style={{ opacity: 0.15 }}
+                loading="lazy"
+              />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-secondary to-transparent" />
             <div className="absolute bottom-3 left-3">
@@ -60,6 +70,15 @@ const NewsCard = ({ category, title, excerpt, time, views, featured, link, image
             <video src={videoUrl} className="absolute inset-0 w-full h-full object-cover" muted playsInline preload="metadata" />
           ) : (
             imageUrl && <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+          )}
+          {(hasVideo || imageUrl) && (
+            <img
+              src={logo}
+              alt="Copyright watermark"
+              className="absolute bottom-1 right-1 w-6 h-auto pointer-events-none select-none"
+              style={{ opacity: 0.15 }}
+              loading="lazy"
+            />
           )}
           <span className="absolute bottom-1 left-1 bg-primary text-primary-foreground px-1 py-0.5 text-[10px] font-heading uppercase tracking-wider font-bold">
             {category}
