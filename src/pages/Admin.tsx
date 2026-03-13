@@ -14,12 +14,20 @@ import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
 import AdminMediaFields from "@/components/admin/AdminMediaFields";
 import ArticleMediaUpdater from "@/components/admin/ArticleMediaUpdater";
 import AdminNewsChatComposer from "@/components/admin/AdminNewsChatComposer";
+import { triggerSocialPublish } from "@/lib/social-publish";
 
 type NewsPost = Tables<"news_posts"> & {
   video_url?: string | null;
   meta_title?: string | null;
   meta_description?: string | null;
   meta_keywords?: string[] | null;
+};
+
+type SocialPublishSettings = {
+  id: string;
+  webhook_url: string;
+  enabled: boolean;
+  secret_token: string | null;
 };
 
 interface NewsFormState {
@@ -66,6 +74,11 @@ const Admin = () => {
   const [form, setForm] = useState<NewsFormState>(emptyForm);
   const [aiSourceUrl, setAiSourceUrl] = useState("");
   const [aiSourceText, setAiSourceText] = useState("");
+  const [socialSettings, setSocialSettings] = useState<SocialPublishSettings | null>(null);
+  const [webhookUrlInput, setWebhookUrlInput] = useState("");
+  const [secretTokenInput, setSecretTokenInput] = useState("");
+  const [socialEnabled, setSocialEnabled] = useState(true);
+  const [savingSocialSettings, setSavingSocialSettings] = useState(false);
 
   const topCategory = useMemo(() => {
     if (!posts.length) return "—";
@@ -79,11 +92,18 @@ const Admin = () => {
   const fetchAdminState = async (currentUserId: string) => {
     setLoadingPosts(true);
 
-    const [{ data: roles, error: roleError }, { data: postData, error: postsError }, { count: totalViews, error: viewsError }] = await Promise.all([
-      supabase.from("user_roles").select("role").eq("user_id", currentUserId).eq("role", "admin").maybeSingle(),
-      supabase.from("news_posts").select("*").order("created_at", { ascending: false }),
-      supabase.from("page_view_events").select("id", { count: "exact", head: true }),
-    ]);
+    const [{ data: roles, error: roleError }, { data: postData, error: postsError }, { count: totalViews, error: viewsError }, { data: socialData, error: socialError }] =
+      await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", currentUserId).eq("role", "admin").maybeSingle(),
+        supabase.from("news_posts").select("*").order("created_at", { ascending: false }),
+        supabase.from("page_view_events").select("id", { count: "exact", head: true }),
+        (supabase as any)
+          .from("social_publish_settings")
+          .select("id, webhook_url, enabled, secret_token")
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
     if (roleError) {
       toast({ title: "அனுமதி சரிபார்ப்பு தோல்வி", description: roleError.message, variant: "destructive" });
@@ -113,6 +133,16 @@ const Admin = () => {
 
     if (viewsError) {
       toast({ title: "Analytics ஏற்ற முடியவில்லை", description: viewsError.message, variant: "destructive" });
+    }
+
+    if (socialError) {
+      toast({ title: "Social settings ஏற்ற முடியவில்லை", description: socialError.message, variant: "destructive" });
+    } else {
+      const settings = (socialData as SocialPublishSettings | null) || null;
+      setSocialSettings(settings);
+      setWebhookUrlInput(settings?.webhook_url || "");
+      setSecretTokenInput(settings?.secret_token || "");
+      setSocialEnabled(settings?.enabled ?? true);
     }
 
     setLoadingPosts(false);
@@ -211,6 +241,68 @@ const Admin = () => {
     setBulkGenerating(false);
   };
 
+  const handleSaveSocialSettings = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    const webhook = webhookUrlInput.trim() || socialSettings?.webhook_url?.trim() || "";
+    if (!webhook) {
+      toast({ title: "Webhook URL தேவை", description: "Zapier/Make webhook URL நிரப்பவும்.", variant: "destructive" });
+      return;
+    }
+
+    if (!/^https?:\/\//i.test(webhook)) {
+      toast({ title: "Webhook URL தவறானது", description: "https:// URL பயன்படுத்தவும்.", variant: "destructive" });
+      return;
+    }
+
+    setSavingSocialSettings(true);
+
+    const payload = {
+      webhook_url: webhook,
+      enabled: socialEnabled,
+      secret_token: secretTokenInput.trim() || null,
+      created_by: user.id,
+    };
+
+    const query = (supabase as any)
+      .from("social_publish_settings")
+      .upsert(socialSettings ? { ...payload, id: socialSettings.id } : payload)
+      .select("id, webhook_url, enabled, secret_token")
+      .single();
+
+    const { data, error } = await query;
+
+    if (error) {
+      toast({ title: "Social settings சேமிக்க முடியவில்லை", description: error.message, variant: "destructive" });
+      setSavingSocialSettings(false);
+      return;
+    }
+
+    const next = data as SocialPublishSettings;
+    setSocialSettings(next);
+    setWebhookUrlInput(next.webhook_url || "");
+    setSecretTokenInput(next.secret_token || "");
+    setSocialEnabled(!!next.enabled);
+    toast({ title: "Social auto post settings saved" });
+    setSavingSocialSettings(false);
+  };
+
+  const handleSocialPushResult = (result: { success: boolean; skipped: boolean; error: string | null }) => {
+    if (result.success) {
+      toast({ title: "சமூக சேனல்களுக்கு அனுப்பப்பட்டது" });
+      return;
+    }
+
+    if (!result.skipped) {
+      toast({
+        title: "செய்தி publish ஆனது; சமூக பகிர்வு தோல்வி",
+        description: result.error || "Webhook error",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -248,14 +340,26 @@ const Admin = () => {
       published_at: form.is_published ? new Date().toISOString() : null,
     };
 
-    const { error } = editingId
-      ? await supabase.from("news_posts").update(payload as never).eq("id", editingId)
-      : await supabase.from("news_posts").insert({ ...(payload as Record<string, unknown>), created_by: user.id } as never);
+    const query = editingId
+      ? supabase.from("news_posts").update(payload as never).eq("id", editingId).select("id, is_published").single()
+      : supabase
+          .from("news_posts")
+          .insert({ ...(payload as Record<string, unknown>), created_by: user.id } as never)
+          .select("id, is_published")
+          .single();
+
+    const { data: savedPost, error } = await query;
 
     if (error) {
       toast({ title: "சேமிக்க முடியவில்லை", description: error.message, variant: "destructive" });
     } else {
       toast({ title: editingId ? "செய்தி புதுப்பிக்கப்பட்டது" : "செய்தி உருவாக்கப்பட்டது" });
+
+      if (savedPost?.is_published) {
+        const socialResult = await triggerSocialPublish(savedPost.id, "manual-form");
+        handleSocialPushResult(socialResult);
+      }
+
       resetForm();
       await fetchAdminState(user.id);
     }
@@ -304,6 +408,12 @@ const Admin = () => {
       toast({ title: "நிலை மாற்ற முடியவில்லை", description: error.message, variant: "destructive" });
     } else {
       toast({ title: nextPublished ? "செய்தி வெளியிடப்பட்டது" : "வரைவு நிலைக்கு மாற்றப்பட்டது" });
+
+      if (nextPublished) {
+        const socialResult = await triggerSocialPublish(post.id, "toggle-publish");
+        handleSocialPushResult(socialResult);
+      }
+
       await fetchAdminState(user.id);
     }
   };
@@ -393,6 +503,53 @@ const Admin = () => {
             await fetchAdminState(user.id);
           }}
         />
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-heading text-xl uppercase">Social Auto Post Settings</CardTitle>
+            <CardDescription>Publish ஆனதும் Zapier/Make webhook-க்கு அனுப்பப்படும்.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSaveSocialSettings} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="social-webhook-url">Webhook URL</Label>
+                <Input
+                  id="social-webhook-url"
+                  placeholder="https://hooks.zapier.com/..."
+                  value={webhookUrlInput}
+                  onChange={(e) => setWebhookUrlInput(e.target.value)}
+                  disabled={savingSocialSettings}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="social-secret-token">Secret Token (Optional)</Label>
+                <Input
+                  id="social-secret-token"
+                  placeholder="Optional security token"
+                  value={secretTokenInput}
+                  onChange={(e) => setSecretTokenInput(e.target.value)}
+                  disabled={savingSocialSettings}
+                />
+              </div>
+
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={socialEnabled}
+                  onChange={(e) => setSocialEnabled(e.target.checked)}
+                  className="h-4 w-4 rounded border-input"
+                  disabled={savingSocialSettings}
+                />
+                சமூக auto post இயக்கவும்
+              </label>
+
+              <Button type="submit" disabled={savingSocialSettings}>
+                {savingSocialSettings ? "Saving..." : "Save Social Settings"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
         <AdminAIAssistant
           sourceUrl={aiSourceUrl}
