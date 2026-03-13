@@ -157,10 +157,12 @@ const AdminNewsChatComposer = ({ userId, onPostCreated }: AdminNewsChatComposerP
           published_at: new Date().toISOString(),
           created_by: userId,
         })
-        .select("title, slug")
+        .select("id, title, slug")
         .single();
 
       if (insertError) throw insertError;
+
+      const socialResult = await triggerSocialPublish(inserted.id, "chat");
 
       appendChat({
         id: crypto.randomUUID(),
@@ -168,7 +170,18 @@ const AdminNewsChatComposer = ({ userId, onPostCreated }: AdminNewsChatComposerP
         text: `✅ வெளியிடப்பட்டது: ${inserted.title} (${inserted.slug})`,
       });
 
-      toast({ title: "செய்தி auto publish செய்யப்பட்டது" });
+      if (!socialResult.success && !socialResult.skipped) {
+        appendChat({
+          id: crypto.randomUUID(),
+          role: "system",
+          text: `⚠️ சமூக பகிர்வு தோல்வி: ${socialResult.error || "Unknown error"}`,
+        });
+      }
+
+      toast({
+        title: socialResult.success ? "செய்தி auto publish செய்யப்பட்டது" : "செய்தி publish ஆனது",
+        description: socialResult.success ? undefined : "சமூக பகிர்வில் சிக்கல்."
+      });
       resetComposer();
       await onPostCreated();
     } catch (error) {

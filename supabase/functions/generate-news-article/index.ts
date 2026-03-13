@@ -188,7 +188,7 @@ Rules:
 - Prefer Tamil language output.
 - SEO fields must be specific and relevant.
 - If input image URL is provided and relevant, prefer it as cover_image_url.
-- If media URL is unknown, return null.
+- If media URL is unknown, return null.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

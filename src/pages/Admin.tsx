@@ -14,6 +14,7 @@ import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
 import AdminMediaFields from "@/components/admin/AdminMediaFields";
 import ArticleMediaUpdater from "@/components/admin/ArticleMediaUpdater";
 import AdminNewsChatComposer from "@/components/admin/AdminNewsChatComposer";
+import { triggerSocialPublish } from "@/lib/social-publish";
 
 type NewsPost = Tables<"news_posts"> & {
   video_url?: string | null;
