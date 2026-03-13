@@ -23,6 +23,13 @@ type NewsPost = Tables<"news_posts"> & {
   meta_keywords?: string[] | null;
 };
 
+type SocialPublishSettings = {
+  id: string;
+  webhook_url: string;
+  enabled: boolean;
+  secret_token: string | null;
+};
+
 interface NewsFormState {
   title: string;
   slug: string;
