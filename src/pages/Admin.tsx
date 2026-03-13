@@ -387,6 +387,13 @@ const Admin = () => {
           </Card>
         </div>
 
+        <AdminNewsChatComposer
+          userId={user.id}
+          onPostCreated={async () => {
+            await fetchAdminState(user.id);
+          }}
+        />
+
         <AdminAIAssistant
           sourceUrl={aiSourceUrl}
           sourceText={aiSourceText}
