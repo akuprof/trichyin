@@ -109,6 +109,36 @@ export type Database = {
           },
         ]
       }
+      social_publish_settings: {
+        Row: {
+          created_at: string
+          created_by: string
+          enabled: boolean
+          id: string
+          secret_token: string | null
+          updated_at: string
+          webhook_url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          enabled?: boolean
+          id?: string
+          secret_token?: string | null
+          updated_at?: string
+          webhook_url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          enabled?: boolean
+          id?: string
+          secret_token?: string | null
+          updated_at?: string
+          webhook_url?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
