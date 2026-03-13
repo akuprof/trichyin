@@ -135,6 +135,16 @@ const Admin = () => {
       toast({ title: "Analytics ஏற்ற முடியவில்லை", description: viewsError.message, variant: "destructive" });
     }
 
+    if (socialError) {
+      toast({ title: "Social settings ஏற்ற முடியவில்லை", description: socialError.message, variant: "destructive" });
+    } else {
+      const settings = (socialData as SocialPublishSettings | null) || null;
+      setSocialSettings(settings);
+      setWebhookUrlInput(settings?.webhook_url || "");
+      setSecretTokenInput(settings?.secret_token || "");
+      setSocialEnabled(settings?.enabled ?? true);
+    }
+
     setLoadingPosts(false);
   };
 
