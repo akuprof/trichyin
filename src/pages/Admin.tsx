@@ -408,6 +408,12 @@ const Admin = () => {
       toast({ title: "நிலை மாற்ற முடியவில்லை", description: error.message, variant: "destructive" });
     } else {
       toast({ title: nextPublished ? "செய்தி வெளியிடப்பட்டது" : "வரைவு நிலைக்கு மாற்றப்பட்டது" });
+
+      if (nextPublished) {
+        const socialResult = await triggerSocialPublish(post.id, "toggle-publish");
+        handleSocialPushResult(socialResult);
+      }
+
       await fetchAdminState(user.id);
     }
   };
