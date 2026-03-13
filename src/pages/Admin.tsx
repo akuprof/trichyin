@@ -241,6 +241,68 @@ const Admin = () => {
     setBulkGenerating(false);
   };
 
+  const handleSaveSocialSettings = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    const webhook = webhookUrlInput.trim();
+    if (socialEnabled && !webhook) {
+      toast({ title: "Webhook URL தேவை", description: "Auto post enabled இருக்க URL நிரப்பவும்.", variant: "destructive" });
+      return;
+    }
+
+    if (webhook && !/^https?:\/\//i.test(webhook)) {
+      toast({ title: "Webhook URL தவறானது", description: "https:// URL பயன்படுத்தவும்.", variant: "destructive" });
+      return;
+    }
+
+    setSavingSocialSettings(true);
+
+    const payload = {
+      webhook_url: webhook,
+      enabled: socialEnabled,
+      secret_token: secretTokenInput.trim() || null,
+      created_by: user.id,
+    };
+
+    const query = (supabase as any)
+      .from("social_publish_settings")
+      .upsert(socialSettings ? { ...payload, id: socialSettings.id } : payload)
+      .select("id, webhook_url, enabled, secret_token")
+      .single();
+
+    const { data, error } = await query;
+
+    if (error) {
+      toast({ title: "Social settings சேமிக்க முடியவில்லை", description: error.message, variant: "destructive" });
+      setSavingSocialSettings(false);
+      return;
+    }
+
+    const next = data as SocialPublishSettings;
+    setSocialSettings(next);
+    setWebhookUrlInput(next.webhook_url || "");
+    setSecretTokenInput(next.secret_token || "");
+    setSocialEnabled(!!next.enabled);
+    toast({ title: "Social auto post settings saved" });
+    setSavingSocialSettings(false);
+  };
+
+  const handleSocialPushResult = (result: { success: boolean; skipped: boolean; error: string | null }) => {
+    if (result.success) {
+      toast({ title: "சமூக சேனல்களுக்கு அனுப்பப்பட்டது" });
+      return;
+    }
+
+    if (!result.skipped) {
+      toast({
+        title: "செய்தி publish ஆனது; சமூக பகிர்வு தோல்வி",
+        description: result.error || "Webhook error",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) return;
