@@ -1,5 +1,6 @@
 import { Clock, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo.png";
 
 interface NewsCardProps {
   category: string;
