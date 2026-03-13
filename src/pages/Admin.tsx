@@ -74,6 +74,11 @@ const Admin = () => {
   const [form, setForm] = useState<NewsFormState>(emptyForm);
   const [aiSourceUrl, setAiSourceUrl] = useState("");
   const [aiSourceText, setAiSourceText] = useState("");
+  const [socialSettings, setSocialSettings] = useState<SocialPublishSettings | null>(null);
+  const [webhookUrlInput, setWebhookUrlInput] = useState("");
+  const [secretTokenInput, setSecretTokenInput] = useState("");
+  const [socialEnabled, setSocialEnabled] = useState(true);
+  const [savingSocialSettings, setSavingSocialSettings] = useState(false);
 
   const topCategory = useMemo(() => {
     if (!posts.length) return "—";
