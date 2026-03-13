@@ -245,13 +245,13 @@ const Admin = () => {
     e.preventDefault();
     if (!user) return;
 
-    const webhook = webhookUrlInput.trim();
-    if (socialEnabled && !webhook) {
-      toast({ title: "Webhook URL தேவை", description: "Auto post enabled இருக்க URL நிரப்பவும்.", variant: "destructive" });
+    const webhook = webhookUrlInput.trim() || socialSettings?.webhook_url?.trim() || "";
+    if (!webhook) {
+      toast({ title: "Webhook URL தேவை", description: "Zapier/Make webhook URL நிரப்பவும்.", variant: "destructive" });
       return;
     }
 
-    if (webhook && !/^https?:\/\//i.test(webhook)) {
+    if (!/^https?:\/\//i.test(webhook)) {
       toast({ title: "Webhook URL தவறானது", description: "https:// URL பயன்படுத்தவும்.", variant: "destructive" });
       return;
     }
