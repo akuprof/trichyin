@@ -29,6 +29,15 @@ const NewsCard = ({ category, title, excerpt, time, views, featured, link, image
             ) : (
               imageUrl && <img src={imageUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
             )}
+            {(hasVideo || imageUrl) && (
+              <img
+                src={logo}
+                alt="Copyright watermark"
+                className="absolute bottom-2 right-2 w-14 h-auto pointer-events-none select-none"
+                style={{ opacity: 0.15 }}
+                loading="lazy"
+              />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-secondary to-transparent" />
             <div className="absolute bottom-3 left-3">
               <span className="bg-primary text-primary-foreground px-2 py-0.5 text-xs font-heading uppercase tracking-wider font-bold">
