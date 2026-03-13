@@ -13,6 +13,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import AdminAIAssistant from "@/components/admin/AdminAIAssistant";
 import AdminMediaFields from "@/components/admin/AdminMediaFields";
 import ArticleMediaUpdater from "@/components/admin/ArticleMediaUpdater";
+import AdminNewsChatComposer from "@/components/admin/AdminNewsChatComposer";
 
 type NewsPost = Tables<"news_posts"> & {
   video_url?: string | null;
