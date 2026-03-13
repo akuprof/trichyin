@@ -9,6 +9,7 @@ const corsHeaders = {
 type GeneratePayload = {
   sourceUrl?: string | null;
   sourceText?: string | null;
+  imageUrl?: string | null;
 };
 
 type GeneratedArticle = {
