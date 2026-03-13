@@ -144,6 +144,7 @@ Deno.serve(async (req) => {
         cover_image_url: post.cover_image_url,
         video_url: post.video_url,
         published_at: post.published_at,
+        article_url: articleUrl,
         public_url: articleUrl,
       },
       sent_at: new Date().toISOString(),
