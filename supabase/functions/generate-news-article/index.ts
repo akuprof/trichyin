@@ -141,6 +141,7 @@ Deno.serve(async (req) => {
     const body = (await req.json()) as GeneratePayload;
     const sourceUrl = body.sourceUrl?.trim() || null;
     const sourceTextInput = body.sourceText?.trim() || null;
+    const imageUrlInput = body.imageUrl?.trim() || null;
 
     if (!sourceUrl && !sourceTextInput) {
       return new Response(JSON.stringify({ error: "Provide sourceUrl or sourceText" }), {
