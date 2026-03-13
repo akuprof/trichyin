@@ -37,7 +37,10 @@ Deno.serve(async (req) => {
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-    const supabaseAnonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? "";
+    const supabaseAnonKey =
+      Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ??
+      Deno.env.get("SUPABASE_ANON_KEY") ??
+      "";
 
     if (!supabaseUrl || !supabaseAnonKey) {
       throw new Error("Required backend secrets are missing.");
@@ -141,6 +144,7 @@ Deno.serve(async (req) => {
         cover_image_url: post.cover_image_url,
         video_url: post.video_url,
         published_at: post.published_at,
+        article_url: articleUrl,
         public_url: articleUrl,
       },
       sent_at: new Date().toISOString(),
