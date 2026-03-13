@@ -340,14 +340,26 @@ const Admin = () => {
       published_at: form.is_published ? new Date().toISOString() : null,
     };
 
-    const { error } = editingId
-      ? await supabase.from("news_posts").update(payload as never).eq("id", editingId)
-      : await supabase.from("news_posts").insert({ ...(payload as Record<string, unknown>), created_by: user.id } as never);
+    const query = editingId
+      ? supabase.from("news_posts").update(payload as never).eq("id", editingId).select("id, is_published").single()
+      : supabase
+          .from("news_posts")
+          .insert({ ...(payload as Record<string, unknown>), created_by: user.id } as never)
+          .select("id, is_published")
+          .single();
+
+    const { data: savedPost, error } = await query;
 
     if (error) {
       toast({ title: "சேமிக்க முடியவில்லை", description: error.message, variant: "destructive" });
     } else {
       toast({ title: editingId ? "செய்தி புதுப்பிக்கப்பட்டது" : "செய்தி உருவாக்கப்பட்டது" });
+
+      if (savedPost?.is_published) {
+        const socialResult = await triggerSocialPublish(savedPost.id, "manual-form");
+        handleSocialPushResult(socialResult);
+      }
+
       resetForm();
       await fetchAdminState(user.id);
     }
