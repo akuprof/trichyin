@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadToNewsMedia } from "@/lib/news-media";
 
 interface AdminMediaFieldsProps {
   userId: string;
@@ -18,27 +19,6 @@ interface AdminMediaFieldsProps {
   onImageUrlChange: (value: string) => void;
   onVideoUrlChange: (value: string) => void;
 }
-
-const sanitizeFileName = (name: string) =>
-  name
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9.-]/g, "");
-
-const uploadToNewsMedia = async (userId: string, file: File) => {
-  const safeName = sanitizeFileName(file.name) || `media-${Date.now()}`;
-  const filePath = `${userId}/${Date.now()}-${safeName}`;
-
-  const { error: uploadError } = await supabase.storage.from("news-media").upload(filePath, file, {
-    cacheControl: "3600",
-    upsert: false,
-  });
-
-  if (uploadError) throw uploadError;
-
-  const { data } = supabase.storage.from("news-media").getPublicUrl(filePath);
-  return data.publicUrl;
-};
 
 const AdminMediaFields = ({ userId, imageUrl, videoUrl, aiContext, onImageUrlChange, onVideoUrlChange }: AdminMediaFieldsProps) => {
   const { toast } = useToast();

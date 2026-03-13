@@ -9,6 +9,7 @@ const corsHeaders = {
 type GeneratePayload = {
   sourceUrl?: string | null;
   sourceText?: string | null;
+  imageUrl?: string | null;
 };
 
 type GeneratedArticle = {
@@ -140,6 +141,7 @@ Deno.serve(async (req) => {
     const body = (await req.json()) as GeneratePayload;
     const sourceUrl = body.sourceUrl?.trim() || null;
     const sourceTextInput = body.sourceText?.trim() || null;
+    const imageUrlInput = body.imageUrl?.trim() || null;
 
     if (!sourceUrl && !sourceTextInput) {
       return new Response(JSON.stringify({ error: "Provide sourceUrl or sourceText" }), {
@@ -163,6 +165,7 @@ Deno.serve(async (req) => {
 
 Input URL: ${sourceUrl ?? "N/A"}
 Input notes: ${sourceTextInput ?? "N/A"}
+Input image URL: ${imageUrlInput ?? "N/A"}
 Fetched URL context: ${urlContext || "N/A"}
 
 Return ONLY valid JSON with these fields:
@@ -184,7 +187,8 @@ Rules:
 - Keep facts consistent with provided input.
 - Prefer Tamil language output.
 - SEO fields must be specific and relevant.
-- If media URL is unknown, return null.`;
+- If input image URL is provided and relevant, prefer it as cover_image_url.
+- If media URL is unknown, return null.
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -246,7 +250,7 @@ Rules:
       category: (parsed.category || "உள்ளூர்").trim(),
       excerpt: normalizedExcerpt,
       content: normalizedContent,
-      cover_image_url: (parsed.cover_image_url || ogImage || null)?.trim() || null,
+      cover_image_url: (parsed.cover_image_url || imageUrlInput || ogImage || null)?.trim() || null,
       video_url: (parsed.video_url || ogVideo || null)?.trim() || null,
       meta_title: (parsed.meta_title || normalizedTitle).trim().slice(0, 60),
       meta_description: (parsed.meta_description || normalizedExcerpt).trim().slice(0, 160),
