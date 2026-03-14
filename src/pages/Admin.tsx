@@ -579,6 +579,30 @@ const Admin = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="structured-input">ஒற்றை வடிவில் முழு செய்தி (Paste)</Label>
+                <Textarea
+                  id="structured-input"
+                  rows={10}
+                  value={structuredInput}
+                  onChange={(e) => setStructuredInput(e.target.value)}
+                  placeholder={`தலைப்பு (Title):
+Slug:
+Category:
+சுருக்கம் (Summary):
+உள்ளடக்கம் (Content):
+Meta Title:
+Meta Description:
+Meta Keywords:
+Hashtags:
+Social Media Handles Mention:
+Follow @TrichyInsight on X (Twitter), Instagram, and Facebook for instant local updates.`}
+                />
+                <Button type="button" variant="secondary" onClick={handleApplyStructuredInput}>
+                  இந்த input-ஐ form-ல் நிரப்பு
+                </Button>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">தலைப்பு</Label>
