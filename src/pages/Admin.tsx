@@ -524,12 +524,6 @@ const Admin = () => {
           </Card>
         </div>
 
-        <AdminNewsChatComposer
-          userId={user.id}
-          onPostCreated={async () => {
-            await fetchAdminState(user.id);
-          }}
-        />
 
         <Card>
           <CardHeader>
