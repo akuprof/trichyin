@@ -191,28 +191,54 @@ const Admin = () => {
       { key: "follow_line", labels: ["Follow @TrichyInsight on X (Twitter), Instagram, and Facebook for instant local updates."] },
     ] as const;
 
-    const isMarkerLine = (line: string, labels: readonly string[]) =>
-      labels.some((label) => line.trim().toLowerCase().startsWith(`${label.toLowerCase()}:`));
+    const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const markerMatchers = markers.map((marker) => ({
+      key: marker.key,
+      patterns: marker.labels.map((label) => new RegExp(`^\\s*${escapeRegExp(label)}\\s*:??\\s*(.*)$`, "i")),
+    }));
 
     const sections: Record<string, string> = {};
+    let currentKey: string | null = null;
+    let buffer: string[] = [];
 
-    markers.forEach((marker, index) => {
-      const startIndex = lines.findIndex((line) => isMarkerLine(line, marker.labels));
-      if (startIndex === -1) return;
+    const flush = () => {
+      if (!currentKey) return;
+      sections[currentKey] = buffer.join("\n").trim();
+    };
 
-      const nextIndex = markers
-        .slice(index + 1)
-        .map((nextMarker) => lines.findIndex((line) => isMarkerLine(line, nextMarker.labels)))
-        .filter((idx) => idx > startIndex)
-        .sort((a, b) => a - b)[0];
+    lines.forEach((line) => {
+      let nextKey: string | null = null;
+      let inlineValue = "";
 
-      const currentLine = lines[startIndex] || "";
-      const currentValue = currentLine.split(":").slice(1).join(":").trim();
-      const bodyLines = lines.slice(startIndex + 1, nextIndex ?? lines.length);
-      const combined = [currentValue, ...bodyLines].join("\n").trim();
+      for (const marker of markerMatchers) {
+        const matchedPattern = marker.patterns.find((pattern) => pattern.test(line));
+        if (!matchedPattern) continue;
 
-      sections[marker.key] = combined;
+        const match = line.match(matchedPattern);
+        nextKey = marker.key;
+        inlineValue = match?.[1]?.trim() || "";
+        break;
+      }
+
+      if (nextKey) {
+        flush();
+        currentKey = nextKey;
+        buffer = inlineValue ? [inlineValue] : [];
+      } else if (currentKey) {
+        buffer.push(line);
+      }
     });
+
+    flush();
+
+    if (!sections.follow_line && sections.social_handles) {
+      const followMatch = sections.social_handles.match(/(Follow\s+@TrichyInsight[\s\S]*)/i);
+      if (followMatch?.[1]) {
+        sections.follow_line = followMatch[1].trim();
+        sections.social_handles = sections.social_handles.replace(followMatch[1], "").trim();
+      }
+    }
 
     const contentExtras = [
       sections.hashtags ? `Hashtags: ${sections.hashtags}` : "",
