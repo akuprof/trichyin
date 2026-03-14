@@ -169,45 +169,76 @@ const Admin = () => {
     setEditingId(null);
   };
 
-  const handleAIGenerate = async () => {
-    if (!aiSourceUrl.trim() && !aiSourceText.trim()) {
-      toast({ title: "Input தேவை", description: "URL அல்லது குறிப்புகள் கொடுக்கவும்.", variant: "destructive" });
+  const handleApplyStructuredInput = () => {
+    const raw = structuredInput.trim();
+    if (!raw) {
+      toast({ title: "Input தேவை", description: "முழு செய்தி வடிவத்தை paste செய்யவும்.", variant: "destructive" });
       return;
     }
 
-    setGenerating(true);
+    const lines = raw.split(/\r?\n/);
+    const markers = [
+      { key: "title", labels: ["தலைப்பு (Title)", "Title"] },
+      { key: "slug", labels: ["Slug"] },
+      { key: "category", labels: ["Category"] },
+      { key: "excerpt", labels: ["சுருக்கம் (Summary)", "Summary"] },
+      { key: "content", labels: ["உள்ளடக்கம் (Content)", "Content"] },
+      { key: "meta_title", labels: ["Meta Title"] },
+      { key: "meta_description", labels: ["Meta Description"] },
+      { key: "meta_keywords", labels: ["Meta Keywords"] },
+      { key: "hashtags", labels: ["Hashtags"] },
+      { key: "social_handles", labels: ["Social Media Handles Mention"] },
+      { key: "follow_line", labels: ["Follow @TrichyInsight on X (Twitter), Instagram, and Facebook for instant local updates."] },
+    ] as const;
 
-    const { data, error } = await supabase.functions.invoke("generate-news-article", {
-      body: {
-        sourceUrl: aiSourceUrl.trim() || null,
-        sourceText: aiSourceText.trim() || null,
-      },
+    const isMarkerLine = (line: string, labels: readonly string[]) =>
+      labels.some((label) => line.trim().toLowerCase().startsWith(`${label.toLowerCase()}:`));
+
+    const sections: Record<string, string> = {};
+
+    markers.forEach((marker, index) => {
+      const startIndex = lines.findIndex((line) => isMarkerLine(line, marker.labels));
+      if (startIndex === -1) return;
+
+      const nextIndex = markers
+        .slice(index + 1)
+        .map((nextMarker) => lines.findIndex((line) => isMarkerLine(line, nextMarker.labels)))
+        .filter((idx) => idx > startIndex)
+        .sort((a, b) => a - b)[0];
+
+      const currentLine = lines[startIndex] || "";
+      const currentValue = currentLine.split(":").slice(1).join(":").trim();
+      const bodyLines = lines.slice(startIndex + 1, nextIndex ?? lines.length);
+      const combined = [currentValue, ...bodyLines].join("\n").trim();
+
+      sections[marker.key] = combined;
     });
 
-    if (error) {
-      toast({ title: "AI உருவாக்கம் தோல்வி", description: error.message, variant: "destructive" });
-      setGenerating(false);
-      return;
-    }
+    const contentExtras = [
+      sections.hashtags ? `Hashtags: ${sections.hashtags}` : "",
+      sections.social_handles ? `Social Media Handles Mention: ${sections.social_handles}` : "",
+      sections.follow_line || "",
+    ].filter(Boolean);
 
-    const result = (data || {}) as Partial<NewsFormState>;
+    setForm((prev) => {
+      const nextTitle = sections.title || prev.title;
+      const nextSlug = sections.slug || buildSlug(nextTitle) || prev.slug;
+      const nextContent = [sections.content || prev.content, ...contentExtras].filter(Boolean).join("\n\n");
 
-    setForm((prev) => ({
-      ...prev,
-      title: result.title || prev.title,
-      slug: result.slug || prev.slug,
-      category: result.category || prev.category,
-      excerpt: result.excerpt || prev.excerpt,
-      content: result.content || prev.content,
-      cover_image_url: result.cover_image_url || prev.cover_image_url,
-      video_url: result.video_url || prev.video_url,
-      meta_title: result.meta_title || prev.meta_title,
-      meta_description: result.meta_description || prev.meta_description,
-      meta_keywords: result.meta_keywords || prev.meta_keywords,
-    }));
+      return {
+        ...prev,
+        title: nextTitle,
+        slug: nextSlug,
+        category: sections.category || prev.category,
+        excerpt: sections.excerpt || prev.excerpt,
+        content: nextContent,
+        meta_title: sections.meta_title || prev.meta_title,
+        meta_description: sections.meta_description || prev.meta_description,
+        meta_keywords: sections.meta_keywords || prev.meta_keywords,
+      };
+    });
 
-    toast({ title: "AI draft தயாராக உள்ளது" });
-    setGenerating(false);
+    toast({ title: "செய்தி வடிவம் apply செய்யப்பட்டது" });
   };
 
   const handleBulkGenerateImages = async () => {
