@@ -195,7 +195,7 @@ const Admin = () => {
 
     const markerMatchers = markers.map((marker) => ({
       key: marker.key,
-      patterns: marker.labels.map((label) => new RegExp(`^\\s*${escapeRegExp(label)}\\s*:??\\s*(.*)$`, "i")),
+      patterns: marker.labels.map((label) => new RegExp(`^\\s*${escapeRegExp(label)}\\s*:?\\s*(.*)$`, "i")),
     }));
 
     const sections: Record<string, string> = {};
