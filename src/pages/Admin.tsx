@@ -65,13 +65,11 @@ const Admin = () => {
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [saving, setSaving] = useState(false);
-  const [generating, setGenerating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [bulkGenerating, setBulkGenerating] = useState(false);
   const [analytics, setAnalytics] = useState({ totalPosts: 0, publishedPosts: 0, totalViews: 0 });
   const [form, setForm] = useState<NewsFormState>(emptyForm);
-  const [aiSourceUrl, setAiSourceUrl] = useState("");
-  const [aiSourceText, setAiSourceText] = useState("");
+  const [structuredInput, setStructuredInput] = useState("");
   const [socialSettings, setSocialSettings] = useState<SocialPublishSettings | null>(null);
   const [webhookUrlInput, setWebhookUrlInput] = useState("");
   const [secretTokenInput, setSecretTokenInput] = useState("");
