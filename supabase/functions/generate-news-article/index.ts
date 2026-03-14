@@ -278,7 +278,24 @@ Rules:
     if (insertError) {
       throw new Error(`Failed to insert article: ${insertError.message}`);
     }
+    // Simple webhook secret validation
+    const authHeader = req.headers.get("Authorization") || "";
+    const expectedSecret = Deno.env.get("WEBHOOK_SECRET") ?? "";
 
+    if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Use service role key for database operations
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    if (!supabaseServiceKey) {
+      throw new Error("SUPABASE_SERVICE_ROLE_KEY environment variable is missing");
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     // Return the inserted post
     return new Response(JSON.stringify(insertedPost), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
