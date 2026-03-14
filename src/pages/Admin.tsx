@@ -572,14 +572,6 @@ const Admin = () => {
           </CardContent>
         </Card>
 
-        <AdminAIAssistant
-          sourceUrl={aiSourceUrl}
-          sourceText={aiSourceText}
-          generating={generating}
-          onSourceUrlChange={setAiSourceUrl}
-          onSourceTextChange={setAiSourceText}
-          onGenerate={handleAIGenerate}
-        />
 
         <Card>
           <CardHeader>
