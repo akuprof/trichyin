@@ -164,6 +164,19 @@ const NewsArticle = () => {
                 {paragraph}
               </p>
             ))}
+
+            <Card className="border-primary/30 bg-muted/40">
+              <CardContent className="space-y-2 p-4">
+                {COMMUNITY_ALERT_LINES.map((line, index) => (
+                  <p
+                    key={index}
+                    className={index === 0 ? "font-heading text-base uppercase text-primary" : "text-sm leading-7 text-foreground"}
+                  >
+                    {line}
+                  </p>
+                ))}
+              </CardContent>
+            </Card>
           </section>
         </article>
 
