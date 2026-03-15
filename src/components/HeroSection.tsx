@@ -18,16 +18,12 @@ const HeroSection = () => {
         </div>
 
         <h2 className="text-secondary-foreground font-heading text-4xl md:text-6xl leading-none max-w-3xl uppercase">
-          சாமானியனின் குரல் – உண்மையின் வெளிச்சம்
+          உண்மையை நேராக கேட்கும் திருச்சி டிஜிட்டல் குரல்
         </h2>
 
-        <p className="text-muted-foreground mt-4 max-w-3xl text-lg leading-relaxed">
-          உங்கள் பகுதியில் நடைபெறும் அநீதி, ஊழல் அல்லது சட்டவிரோத செயல்கள் குறித்து ஆதாரத்துடன் எங்களுக்கு தகவல் அனுப்புங்கள்.
+        <p className="text-muted-foreground mt-4 max-w-xl text-lg">
+          விசாரணை நோக்கு. இளைஞர் வேகம். தெளிவான பகுப்பாய்வு. உங்கள் நகரத்தின் உண்மை குரல்.
         </p>
-        <div className="text-muted-foreground mt-3 max-w-3xl space-y-1 text-sm md:text-base">
-          <p>✔ தகவல்கள் முழுமையாக சரிபார்க்கப்பட்ட பிறகே செய்தியாக வெளியிடப்படும்.</p>
-          <p>✔ தகவல் அளிப்பவரின் பெயர் மற்றும் தொடர்பு விபரங்கள் ரகசியமாக பாதுகாக்கப்படும்.</p>
-        </div>
 
         <div className="flex items-center gap-4 mt-6">
           <button className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 font-heading uppercase tracking-wider text-sm font-bold flex items-center gap-2 transition-colors">
