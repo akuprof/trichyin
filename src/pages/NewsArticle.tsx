@@ -37,6 +37,13 @@ const ensureCanonical = (url: string) => {
   link.href = url;
 };
 
+const COMMUNITY_ALERT_LINES = [
+  "சாமானியனின் குரல் – உண்மையின் வெளிச்சம்",
+  "உங்கள் பகுதியில் நடைபெறும் அநீதி, ஊழல் அல்லது சட்டவிரோத செயல்கள் குறித்து ஆதாரத்துடன் எங்களுக்கு தகவல் அனுப்புங்கள்.",
+  "✔ தகவல்கள் முழுமையாக சரிபார்க்கப்பட்ட பிறகே செய்தியாக வெளியிடப்படும்.",
+  "✔ தகவல் அளிப்பவரின் பெயர் மற்றும் தொடர்பு விபரங்கள் ரகசியமாக பாதுகாக்கப்படும்.",
+];
+
 const NewsArticle = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -157,6 +164,19 @@ const NewsArticle = () => {
                 {paragraph}
               </p>
             ))}
+
+            <Card className="border-primary/30 bg-muted/40">
+              <CardContent className="space-y-2 p-4">
+                {COMMUNITY_ALERT_LINES.map((line, index) => (
+                  <p
+                    key={index}
+                    className={index === 0 ? "font-heading text-base uppercase text-primary" : "text-sm leading-7 text-foreground"}
+                  >
+                    {line}
+                  </p>
+                ))}
+              </CardContent>
+            </Card>
           </section>
         </article>
 
