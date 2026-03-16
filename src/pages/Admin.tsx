@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import AdminMediaFields from "@/components/admin/AdminMediaFields";
 import ArticleMediaUpdater from "@/components/admin/ArticleMediaUpdater";
+import { triggerGoogleNewsPublish } from "@/lib/google-news-publish";
 import { triggerSocialPublish } from "@/lib/social-publish";
 
 type NewsPost = Tables<"news_posts"> & {
