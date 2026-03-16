@@ -128,6 +128,32 @@ const NewsArticle = () => {
     ensureCanonical(canonical);
   }, [post]);
 
+  useEffect(() => {
+    if (!post) return;
+
+    const swgGlobal = globalThis as typeof globalThis & {
+      SWG_BASIC?: Array<(basicSubscriptions: SwgBasicHandler) => void>;
+    };
+
+    (swgGlobal.SWG_BASIC ??= []).push((basicSubscriptions) => {
+      basicSubscriptions.init({
+        type: "NewsArticle",
+        isPartOfType: ["Product"],
+        isPartOfProductId: "CAow8u7FDA:openaccess",
+        clientOptions: { theme: "light", lang: "ta" },
+      });
+    });
+
+    if (document.getElementById("swg-basic-script")) return;
+
+    const script = document.createElement("script");
+    script.id = "swg-basic-script";
+    script.async = true;
+    script.type = "application/javascript";
+    script.src = "https://news.google.com/swg/js/v1/swg-basic.js";
+    document.head.appendChild(script);
+  }, [post]);
+
   if (loading) {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center">
