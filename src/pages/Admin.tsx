@@ -425,8 +425,12 @@ const Admin = () => {
       toast({ title: editingId ? "செய்தி புதுப்பிக்கப்பட்டது" : "செய்தி உருவாக்கப்பட்டது" });
 
       if (savedPost?.is_published) {
-        const socialResult = await triggerSocialPublish(savedPost.id, "manual-form");
+        const [socialResult, googleNewsResult] = await Promise.all([
+          triggerSocialPublish(savedPost.id, "manual-form"),
+          triggerGoogleNewsPublish(savedPost.id, "manual-form"),
+        ]);
         handleSocialPushResult(socialResult);
+        handleGoogleNewsPushResult(googleNewsResult);
       }
 
       resetForm();
