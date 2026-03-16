@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import AdminMediaFields from "@/components/admin/AdminMediaFields";
 import ArticleMediaUpdater from "@/components/admin/ArticleMediaUpdater";
+import { triggerGoogleNewsPublish } from "@/lib/google-news-publish";
 import { triggerSocialPublish } from "@/lib/social-publish";
 
 type NewsPost = Tables<"news_posts"> & {
@@ -356,6 +357,21 @@ const Admin = () => {
     }
   };
 
+  const handleGoogleNewsPushResult = (result: { success: boolean; skipped: boolean; error: string | null }) => {
+    if (result.success) {
+      toast({ title: "Google News auto publish தொடங்கியது" });
+      return;
+    }
+
+    if (!result.skipped) {
+      toast({
+        title: "செய்தி publish ஆனது; Google News ping தோல்வி",
+        description: result.error || "Google ping error",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -409,8 +425,12 @@ const Admin = () => {
       toast({ title: editingId ? "செய்தி புதுப்பிக்கப்பட்டது" : "செய்தி உருவாக்கப்பட்டது" });
 
       if (savedPost?.is_published) {
-        const socialResult = await triggerSocialPublish(savedPost.id, "manual-form");
+        const [socialResult, googleNewsResult] = await Promise.all([
+          triggerSocialPublish(savedPost.id, "manual-form"),
+          triggerGoogleNewsPublish(savedPost.id, "manual-form"),
+        ]);
         handleSocialPushResult(socialResult);
+        handleGoogleNewsPushResult(googleNewsResult);
       }
 
       resetForm();
@@ -463,8 +483,12 @@ const Admin = () => {
       toast({ title: nextPublished ? "செய்தி வெளியிடப்பட்டது" : "வரைவு நிலைக்கு மாற்றப்பட்டது" });
 
       if (nextPublished) {
-        const socialResult = await triggerSocialPublish(post.id, "toggle-publish");
+        const [socialResult, googleNewsResult] = await Promise.all([
+          triggerSocialPublish(post.id, "toggle-publish"),
+          triggerGoogleNewsPublish(post.id, "toggle-publish"),
+        ]);
         handleSocialPushResult(socialResult);
+        handleGoogleNewsPushResult(googleNewsResult);
       }
 
       await fetchAdminState(user.id);
