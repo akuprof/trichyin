@@ -163,7 +163,10 @@ const AdminNewsChatComposer = ({ userId, onPostCreated }: AdminNewsChatComposerP
 
       if (insertError) throw insertError;
 
-      const socialResult = await triggerSocialPublish(inserted.id, "chat");
+      const [socialResult, googleNewsResult] = await Promise.all([
+        triggerSocialPublish(inserted.id, "chat"),
+        triggerGoogleNewsPublish(inserted.id, "chat"),
+      ]);
 
       appendChat({
         id: crypto.randomUUID(),
@@ -179,9 +182,17 @@ const AdminNewsChatComposer = ({ userId, onPostCreated }: AdminNewsChatComposerP
         });
       }
 
+      if (!googleNewsResult.success && !googleNewsResult.skipped) {
+        appendChat({
+          id: crypto.randomUUID(),
+          role: "system",
+          text: `⚠️ Google News auto publish தோல்வி: ${googleNewsResult.error || "Unknown error"}`,
+        });
+      }
+
       toast({
-        title: socialResult.success ? "செய்தி auto publish செய்யப்பட்டது" : "செய்தி publish ஆனது",
-        description: socialResult.success ? undefined : "சமூக பகிர்வில் சிக்கல்."
+        title: socialResult.success || googleNewsResult.success ? "செய்தி auto publish செய்யப்பட்டது" : "செய்தி publish ஆனது",
+        description: !socialResult.success || !googleNewsResult.success ? "சில auto publish சேனல்களில் சிக்கல்." : undefined,
       });
       resetComposer();
       await onPostCreated();
