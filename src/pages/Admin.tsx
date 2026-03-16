@@ -483,8 +483,12 @@ const Admin = () => {
       toast({ title: nextPublished ? "செய்தி வெளியிடப்பட்டது" : "வரைவு நிலைக்கு மாற்றப்பட்டது" });
 
       if (nextPublished) {
-        const socialResult = await triggerSocialPublish(post.id, "toggle-publish");
+        const [socialResult, googleNewsResult] = await Promise.all([
+          triggerSocialPublish(post.id, "toggle-publish"),
+          triggerGoogleNewsPublish(post.id, "toggle-publish"),
+        ]);
         handleSocialPushResult(socialResult);
+        handleGoogleNewsPushResult(googleNewsResult);
       }
 
       await fetchAdminState(user.id);
