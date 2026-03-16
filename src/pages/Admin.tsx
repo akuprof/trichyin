@@ -357,6 +357,21 @@ const Admin = () => {
     }
   };
 
+  const handleGoogleNewsPushResult = (result: { success: boolean; skipped: boolean; error: string | null }) => {
+    if (result.success) {
+      toast({ title: "Google News auto publish தொடங்கியது" });
+      return;
+    }
+
+    if (!result.skipped) {
+      toast({
+        title: "செய்தி publish ஆனது; Google News ping தோல்வி",
+        description: result.error || "Google ping error",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) return;
