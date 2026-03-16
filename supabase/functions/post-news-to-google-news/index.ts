@@ -12,6 +12,13 @@ type PublishPayload = {
   publicBaseUrl?: string;
 };
 
+type SitemapPost = {
+  slug: string;
+  title: string;
+  published_at: string | null;
+  updated_at: string;
+};
+
 const safeBaseUrl = (value?: string) => {
   if (!value) return null;
   try {
@@ -20,6 +27,43 @@ const safeBaseUrl = (value?: string) => {
   } catch {
     return null;
   }
+};
+
+const escapeXml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+
+const buildNewsSitemapXml = (baseUrl: string, posts: SitemapPost[]) => {
+  const urlEntries = posts
+    .map((post) => {
+      const articleUrl = `${baseUrl}/news/${post.slug}`;
+      const publishedAt = post.published_at || post.updated_at;
+      const lastMod = new Date(post.updated_at).toISOString();
+      const publicationDate = new Date(publishedAt).toISOString();
+
+      return `<url>
+  <loc>${escapeXml(articleUrl)}</loc>
+  <lastmod>${lastMod}</lastmod>
+  <news:news>
+    <news:publication>
+      <news:name>Trichy Insight</news:name>
+      <news:language>ta</news:language>
+    </news:publication>
+    <news:publication_date>${publicationDate}</news:publication_date>
+    <news:title>${escapeXml(post.title)}</news:title>
+  </news:news>
+</url>`;
+    })
+    .join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+${urlEntries}
+</urlset>`;
 };
 
 Deno.serve(async (req) => {
@@ -41,14 +85,17 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ??
       Deno.env.get("SUPABASE_ANON_KEY") ??
       "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-    if (!backendUrl || !backendAnonKey) {
+    if (!backendUrl || !backendAnonKey || !serviceRoleKey) {
       throw new Error("Required backend secrets are missing.");
     }
 
     const supabase = createClient(backendUrl, backendAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
+
+    const adminClient = createClient(backendUrl, serviceRoleKey);
 
     const {
       data: { user },
@@ -88,7 +135,7 @@ Deno.serve(async (req) => {
 
     const { data: post, error: postError } = await supabase
       .from("news_posts")
-      .select("slug, is_published")
+      .select("id, is_published")
       .eq("id", postId)
       .maybeSingle();
 
@@ -114,9 +161,47 @@ Deno.serve(async (req) => {
       });
     }
 
-    const sitemapUrl = `${baseUrl}/news-sitemap.xml`;
-    const pingUrl = `https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`;
+    const { data: sitemapPosts, error: sitemapPostsError } = await adminClient
+      .from("news_posts")
+      .select("slug, title, published_at, updated_at")
+      .eq("is_published", true)
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .limit(200);
 
+    if (sitemapPostsError) {
+      return new Response(JSON.stringify({ success: false, error: sitemapPostsError.message }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const typedPosts = (sitemapPosts || []) as SitemapPost[];
+
+    if (!typedPosts.length) {
+      return new Response(JSON.stringify({ success: false, skipped: true, error: "No published posts found" }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const xml = buildNewsSitemapXml(baseUrl, typedPosts);
+
+    const { error: uploadError } = await adminClient.storage
+      .from("news-media")
+      .upload("news-sitemap.xml", new TextEncoder().encode(xml), {
+        contentType: "application/xml; charset=utf-8",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      return new Response(JSON.stringify({ success: false, error: uploadError.message }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const sitemapUrl = `${backendUrl}/storage/v1/object/public/news-media/news-sitemap.xml`;
+    const pingUrl = `https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`;
     const pingResponse = await fetch(pingUrl, { method: "GET" });
 
     if (!pingResponse.ok) {
@@ -125,6 +210,7 @@ Deno.serve(async (req) => {
         JSON.stringify({
           success: false,
           error: `Google ping failed (${pingResponse.status}): ${responseText.slice(0, 500)}`,
+          sitemap_url: sitemapUrl,
         }),
         {
           status: 200,
@@ -133,16 +219,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        sitemap_url: sitemapUrl,
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return new Response(JSON.stringify({ success: true, sitemap_url: sitemapUrl }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("post-news-to-google-news error:", error);
     return new Response(
