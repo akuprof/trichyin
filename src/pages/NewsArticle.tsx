@@ -37,6 +37,15 @@ const ensureCanonical = (url: string) => {
   link.href = url;
 };
 
+type SwgBasicHandler = {
+  init: (config: {
+    type: "NewsArticle";
+    isPartOfType: ["Product"];
+    isPartOfProductId: "CAow8u7FDA:openaccess";
+    clientOptions: { theme: "light"; lang: "ta" };
+  }) => void;
+};
+
 const COMMUNITY_ALERT_LINES = [
   "சாமானியனின் குரல் – உண்மையின் வெளிச்சம்",
   "உங்கள் பகுதியில் நடைபெறும் அநீதி, ஊழல் அல்லது சட்டவிரோத செயல்கள் குறித்து ஆதாரத்துடன் எங்களுக்கு தகவல் அனுப்புங்கள்.",
