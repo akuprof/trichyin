@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadToNewsMedia } from "@/lib/news-media";
+import { triggerGoogleNewsPublish } from "@/lib/google-news-publish";
 import { triggerSocialPublish } from "@/lib/social-publish";
 
 type ChatMessage = {
