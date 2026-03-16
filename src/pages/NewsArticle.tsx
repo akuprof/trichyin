@@ -37,6 +37,15 @@ const ensureCanonical = (url: string) => {
   link.href = url;
 };
 
+type SwgBasicHandler = {
+  init: (config: {
+    type: "NewsArticle";
+    isPartOfType: ["Product"];
+    isPartOfProductId: "CAow8u7FDA:openaccess";
+    clientOptions: { theme: "light"; lang: "ta" };
+  }) => void;
+};
+
 const COMMUNITY_ALERT_LINES = [
   "சாமானியனின் குரல் – உண்மையின் வெளிச்சம்",
   "உங்கள் பகுதியில் நடைபெறும் அநீதி, ஊழல் அல்லது சட்டவிரோத செயல்கள் குறித்து ஆதாரத்துடன் எங்களுக்கு தகவல் அனுப்புங்கள்.",
@@ -117,6 +126,32 @@ const NewsArticle = () => {
       ensureMetaTag("property", "og:image", post.cover_image_url);
     }
     ensureCanonical(canonical);
+  }, [post]);
+
+  useEffect(() => {
+    if (!post) return;
+
+    const swgGlobal = globalThis as typeof globalThis & {
+      SWG_BASIC?: Array<(basicSubscriptions: SwgBasicHandler) => void>;
+    };
+
+    (swgGlobal.SWG_BASIC ??= []).push((basicSubscriptions) => {
+      basicSubscriptions.init({
+        type: "NewsArticle",
+        isPartOfType: ["Product"],
+        isPartOfProductId: "CAow8u7FDA:openaccess",
+        clientOptions: { theme: "light", lang: "ta" },
+      });
+    });
+
+    if (document.getElementById("swg-basic-script")) return;
+
+    const script = document.createElement("script");
+    script.id = "swg-basic-script";
+    script.async = true;
+    script.type = "application/javascript";
+    script.src = "https://news.google.com/swg/js/v1/swg-basic.js";
+    document.head.appendChild(script);
   }, [post]);
 
   if (loading) {
