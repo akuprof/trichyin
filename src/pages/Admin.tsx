@@ -357,9 +357,12 @@ const Admin = () => {
     }
   };
 
-  const handleGoogleNewsPushResult = (result: { success: boolean; skipped: boolean; error: string | null }) => {
+  const handleGoogleNewsPushResult = (result: { success: boolean; skipped: boolean; error: string | null; sitemapUrl?: string | null }) => {
     if (result.success) {
-      toast({ title: "Google News auto publish தொடங்கியது" });
+      toast({
+        title: "Google News sitemap update ஆனது",
+        description: result.sitemapUrl ? `Sitemap URL: ${result.sitemapUrl}` : undefined,
+      });
       return;
     }
 
