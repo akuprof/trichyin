@@ -201,28 +201,18 @@ Deno.serve(async (req) => {
     }
 
     const sitemapUrl = `${backendUrl}/storage/v1/object/public/news-media/news-sitemap.xml`;
-    const pingUrl = `https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`;
-    const pingResponse = await fetch(pingUrl, { method: "GET" });
 
-    if (!pingResponse.ok) {
-      const responseText = await pingResponse.text();
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: `Google ping failed (${pingResponse.status}): ${responseText.slice(0, 500)}`,
-          sitemap_url: sitemapUrl,
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    return new Response(JSON.stringify({ success: true, sitemap_url: sitemapUrl }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        sitemap_url: sitemapUrl,
+        message: "News sitemap generated and updated successfully.",
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
     console.error("post-news-to-google-news error:", error);
     return new Response(
