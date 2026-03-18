@@ -6,6 +6,7 @@ type GoogleNewsPublishResponse = {
   success?: boolean;
   skipped?: boolean;
   error?: string;
+  sitemap_url?: string;
 };
 
 export const triggerGoogleNewsPublish = async (postId: string, source: GoogleNewsPublishSource) => {
@@ -22,6 +23,7 @@ export const triggerGoogleNewsPublish = async (postId: string, source: GoogleNew
       success: false,
       skipped: false,
       error: error.message,
+      sitemapUrl: null,
     };
   }
 
@@ -31,5 +33,6 @@ export const triggerGoogleNewsPublish = async (postId: string, source: GoogleNew
     success: !!payload.success,
     skipped: !!payload.skipped,
     error: payload.error || null,
+    sitemapUrl: payload.sitemap_url || null,
   };
 };
