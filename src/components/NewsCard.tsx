@@ -40,7 +40,7 @@ const NewsCard = ({ category, title, excerpt, time, views, featured, link, image
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-secondary to-transparent" />
             <div className="absolute bottom-3 left-3">
-              <span className="bg-primary text-primary-foreground px-2 py-0.5 text-xs font-heading uppercase tracking-wider font-bold">
+              <span className="inline-block max-w-[85%] truncate rounded bg-primary/95 px-2 py-0.5 text-xs font-heading font-bold uppercase tracking-wider text-primary-foreground" title={category}>
                 {category}
               </span>
             </div>
@@ -80,7 +80,10 @@ const NewsCard = ({ category, title, excerpt, time, views, featured, link, image
               loading="lazy"
             />
           )}
-          <span className="absolute bottom-1 left-1 bg-primary text-primary-foreground px-1 py-0.5 text-[10px] font-heading uppercase tracking-wider font-bold">
+          <span
+            className="absolute top-1 left-1 inline-block max-w-[90%] truncate rounded bg-primary/95 px-1 py-0.5 text-[10px] font-heading font-bold uppercase tracking-wider text-primary-foreground"
+            title={category}
+          >
             {category}
           </span>
         </div>
