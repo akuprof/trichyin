@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 type NewsPost = Tables<"news_posts"> & { video_url?: string | null };
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 12;
 
 const formatTimeAgoTa = (dateString: string) => {
   const publishedDate = new Date(dateString);
