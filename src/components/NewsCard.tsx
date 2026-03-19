@@ -40,7 +40,7 @@ const NewsCard = ({ category, title, excerpt, time, views, featured, link, image
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-secondary to-transparent" />
             <div className="absolute bottom-3 left-3">
-              <span className="bg-primary text-primary-foreground px-2 py-0.5 text-xs font-heading uppercase tracking-wider font-bold">
+              <span className="inline-block max-w-[85%] truncate rounded bg-primary/95 px-2 py-0.5 text-xs font-heading font-bold uppercase tracking-wider text-primary-foreground" title={category}>
                 {category}
               </span>
             </div>
