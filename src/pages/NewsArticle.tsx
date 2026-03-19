@@ -164,6 +164,31 @@ const NewsArticle = () => {
 
   if (!post) return null;
 
+  const shareUrl = `${window.location.origin}/news/${post.slug}`;
+  const shareTitle = `${post.title} | Trichy Insight`;
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast({ title: "லிங்க் நகலெடுக்கப்பட்டது", description: "இந்த செய்தி இணைப்பு கிளிப்போர்டுக்கு நகலெடுக்கப்பட்டது." });
+    } catch {
+      toast({ title: "லிங்க் நகலெடுக்க முடியவில்லை", variant: "destructive" });
+    }
+  };
+
+  const handleNativeShare = async () => {
+    if (!navigator.share) {
+      await handleCopyLink();
+      return;
+    }
+
+    try {
+      await navigator.share({ title: shareTitle, text: post.excerpt || post.title, url: shareUrl });
+    } catch {
+      // User canceled share sheet
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -181,6 +206,46 @@ const NewsArticle = () => {
               <span className="inline-flex items-center gap-1"><Tags className="h-4 w-4" /> {(post.meta_keywords || []).slice(0, 3).join(", ") || "Trichy"}</span>
             </div>
           </header>
+
+          <Card className="border-border">
+            <CardContent className="p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button type="button" variant="outline" onClick={handleNativeShare}>
+                  Share
+                </Button>
+                <Button type="button" variant="outline" onClick={handleCopyLink}>
+                  Copy link
+                </Button>
+                <Button type="button" variant="outline" asChild>
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(`${shareTitle} ${shareUrl}`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    WhatsApp
+                  </a>
+                </Button>
+                <Button type="button" variant="outline" asChild>
+                  <a
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    X
+                  </a>
+                </Button>
+                <Button type="button" variant="outline" asChild>
+                  <a
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Facebook
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardContent className="p-0">
