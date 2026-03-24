@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      ads: {
+        Row: {
+          click_count: number
+          client_name: string | null
+          created_at: string
+          end_date: string | null
+          html_code: string | null
+          id: string
+          image_url: string | null
+          impression_count: number
+          is_active: boolean
+          link_url: string | null
+          priority: number
+          slot: string
+          start_date: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          click_count?: number
+          client_name?: string | null
+          created_at?: string
+          end_date?: string | null
+          html_code?: string | null
+          id?: string
+          image_url?: string | null
+          impression_count?: number
+          is_active?: boolean
+          link_url?: string | null
+          priority?: number
+          slot: string
+          start_date?: string | null
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          click_count?: number
+          client_name?: string | null
+          created_at?: string
+          end_date?: string | null
+          html_code?: string | null
+          id?: string
+          image_url?: string | null
+          impression_count?: number
+          is_active?: boolean
+          link_url?: string | null
+          priority?: number
+          slot?: string
+          start_date?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       news_posts: {
         Row: {
           category: string
