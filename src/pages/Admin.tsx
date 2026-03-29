@@ -13,6 +13,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import AdminMediaFields from "@/components/admin/AdminMediaFields";
 import ArticleMediaUpdater from "@/components/admin/ArticleMediaUpdater";
 import AdminMigrationPanel from "@/components/admin/AdminMigrationPanel";
+import AdminCustomGptPanel from "@/components/admin/AdminCustomGptPanel";
 import { triggerGoogleNewsPublish } from "@/lib/google-news-publish";
 import { triggerSocialPublish } from "@/lib/social-publish";
 
@@ -583,6 +584,8 @@ const Admin = () => {
             await fetchAdminState(user.id);
           }}
         />
+
+        <AdminCustomGptPanel />
 
 
         <Card>
