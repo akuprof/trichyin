@@ -71,6 +71,24 @@ export type Database = {
         }
         Relationships: []
       }
+      channel_settings: {
+        Row: {
+          id: number
+          settings: Json
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          settings?: Json
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          settings?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       news_posts: {
         Row: {
           category: string
