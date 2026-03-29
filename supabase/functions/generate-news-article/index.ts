@@ -67,12 +67,121 @@ const normalizeKeywords = (value: unknown): string[] => {
   return [];
 };
 
+const PRIVATE_IPV4_CIDRS = [
+  ["10.0.0.0", 8],
+  ["172.16.0.0", 12],
+  ["192.168.0.0", 16],
+  ["127.0.0.0", 8],
+  ["169.254.0.0", 16],
+  ["0.0.0.0", 8],
+] as const;
+
+const isIPv4 = (value: string) => /^(\d{1,3}\.){3}\d{1,3}$/.test(value);
+
+const ipv4ToInt = (ip: string) =>
+  ip
+    .split(".")
+    .map((part) => Number(part))
+    .reduce((acc, octet) => (acc << 8) + octet, 0) >>> 0;
+
+const isPrivateIPv4 = (ip: string) => {
+  if (!isIPv4(ip)) return false;
+  const octets = ip.split(".").map((part) => Number(part));
+  if (octets.some((octet) => Number.isNaN(octet) || octet < 0 || octet > 255)) return false;
+
+  const ipInt = ipv4ToInt(ip);
+  return PRIVATE_IPV4_CIDRS.some(([base, mask]) => {
+    const baseInt = ipv4ToInt(base);
+    const netmask = mask === 0 ? 0 : (~0 << (32 - mask)) >>> 0;
+    return (ipInt & netmask) === (baseInt & netmask);
+  });
+};
+
+const isPrivateIPv6 = (ip: string) => {
+  const normalized = ip.toLowerCase();
+  return (
+    normalized === "::1" ||
+    normalized.startsWith("fc") ||
+    normalized.startsWith("fd") ||
+    normalized.startsWith("fe8") ||
+    normalized.startsWith("fe9") ||
+    normalized.startsWith("fea") ||
+    normalized.startsWith("feb")
+  );
+};
+
+const isForbiddenHost = (hostname: string) => {
+  const host = hostname.toLowerCase();
+  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal")) {
+    return true;
+  }
+
+  if (isPrivateIPv4(host) || isPrivateIPv6(host)) {
+    return true;
+  }
+
+  return false;
+};
+
+const resolveHostAddresses = async (hostname: string) => {
+  if (isIPv4(hostname) || hostname.includes(":")) {
+    return [hostname];
+  }
+
+  try {
+    const [ipv4, ipv6] = await Promise.all([
+      Deno.resolveDns(hostname, "A").catch(() => []),
+      Deno.resolveDns(hostname, "AAAA").catch(() => []),
+    ]);
+
+    return [...ipv4, ...ipv6];
+  } catch {
+    return [];
+  }
+};
+
+const assertSafeSourceUrl = async (value: string) => {
+  let parsed: URL;
+
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error("Invalid source URL");
+  }
+
+  if (parsed.protocol !== "https:") {
+    throw new Error("Only https:// source URLs are allowed");
+  }
+
+  if (parsed.username || parsed.password) {
+    throw new Error("Credentials in source URL are not allowed");
+  }
+
+  if (isForbiddenHost(parsed.hostname)) {
+    throw new Error("Source URL host is not allowed");
+  }
+
+  const resolvedAddresses = await resolveHostAddresses(parsed.hostname);
+  if (resolvedAddresses.some((address) => isPrivateIPv4(address) || isPrivateIPv6(address))) {
+    throw new Error("Source URL resolves to a private network address");
+  }
+
+  return parsed.toString();
+};
+
 const readSourceUrl = async (url: string) => {
-  const response = await fetch(url, {
+  const safeUrl = await assertSafeSourceUrl(url);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+
+  const response = await fetch(safeUrl, {
+    signal: controller.signal,
     headers: {
       "User-Agent": "Mozilla/5.0 (compatible; TrichyInsightBot/1.0)",
     },
   });
+
+  clearTimeout(timeout);
 
   if (!response.ok) {
     throw new Error(`Source URL fetch failed with status ${response.status}`);
@@ -278,25 +387,7 @@ Rules:
     if (insertError) {
       throw new Error(`Failed to insert article: ${insertError.message}`);
     }
-    // Simple webhook secret validation
-    const authHeader = req.headers.get("Authorization") || "";
-    const expectedSecret = Deno.env.get("WEBHOOK_SECRET") ?? "";
 
-    if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Use service role key for database operations
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    if (!supabaseServiceKey) {
-      throw new Error("SUPABASE_SERVICE_ROLE_KEY environment variable is missing");
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    // Return the inserted post
     return new Response(JSON.stringify(insertedPost), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
