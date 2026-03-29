@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import AdminMediaFields from "@/components/admin/AdminMediaFields";
 import ArticleMediaUpdater from "@/components/admin/ArticleMediaUpdater";
+import AdminMigrationPanel from "@/components/admin/AdminMigrationPanel";
+import AdminCustomGptPanel from "@/components/admin/AdminCustomGptPanel";
 import { triggerGoogleNewsPublish } from "@/lib/google-news-publish";
 import { triggerSocialPublish } from "@/lib/social-publish";
 
@@ -576,6 +578,14 @@ const Admin = () => {
             </CardHeader>
           </Card>
         </div>
+
+        <AdminMigrationPanel
+          onImported={async () => {
+            await fetchAdminState(user.id);
+          }}
+        />
+
+        <AdminCustomGptPanel />
 
 
         <Card>
